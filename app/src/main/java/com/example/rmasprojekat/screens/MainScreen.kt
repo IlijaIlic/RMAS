@@ -2,10 +2,12 @@ package com.example.rmasprojekat.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Button
 import androidx.compose.material3.FloatingActionButton
@@ -25,15 +27,21 @@ fun MainScreen(onNavigateToLanding: () -> Unit, onNavigateToAddPlace: () -> Unit
             .fillMaxSize()
             .padding(10.dp),
     ) {
-        Button(onClick = onNavigateToLanding) {
-            Text(text = "Landing")
+        FloatingActionButton(
+            onClick = { /*TODO*/ },
+            containerColor = Amber,
+            contentColor = Color.White,
+            shape = CircleShape,
+            modifier = Modifier
+                .padding(10.dp)
+        ) {
+            Icon(imageVector = Icons.Filled.AccountCircle, contentDescription = "Profile")
         }
         Column(
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.Bottom,
             modifier = Modifier.fillMaxSize()
         ) {
-
             FloatingActionButton(
                 containerColor = Amber,
                 contentColor = Color.White,
