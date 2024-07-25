@@ -21,14 +21,18 @@ import androidx.compose.ui.unit.dp
 import com.example.rmasprojekat.ui.theme.Amber
 
 @Composable
-fun MainScreen(onNavigateToLanding: () -> Unit, onNavigateToAddPlace: () -> Unit) {
+fun MainScreen(
+    onNavigateToLanding: () -> Unit,
+    onNavigateToAddPlace: () -> Unit,
+    onNavigateToProfile: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(10.dp),
     ) {
         FloatingActionButton(
-            onClick = { /*TODO*/ },
+            onClick = { onNavigateToProfile() },
             containerColor = Amber,
             contentColor = Color.White,
             shape = CircleShape,

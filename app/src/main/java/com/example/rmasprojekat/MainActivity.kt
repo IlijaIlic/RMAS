@@ -18,6 +18,7 @@ import com.example.rmasprojekat.screens.Landing
 import com.example.rmasprojekat.screens.Login
 import com.example.rmasprojekat.screens.MainScreen
 import com.example.rmasprojekat.screens.Register
+import com.example.rmasprojekat.screens.ProfileScreen
 import com.example.rmasprojekat.ui.theme.RMASProjekatTheme
 
 class MainActivity : ComponentActivity() {
@@ -60,10 +61,14 @@ fun Navigation() {
         composable("main") {
             MainScreen(
                 onNavigateToAddPlace = { navController.navigate("addPlace") },
-                onNavigateToLanding = { navController.popBackStack("landing", false) })
+                onNavigateToLanding = { navController.popBackStack("landing", false) },
+                onNavigateToProfile = { navController.navigate("profile") })
         }
         composable("addPlace") {
             AddPlace(onNavigateToMain = { navController.popBackStack("main", false) })
+        }
+        composable("profile") {
+            ProfileScreen(onNavigateToMain = { navController.popBackStack("main", false) })
         }
     }
 }
