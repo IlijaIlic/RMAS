@@ -1,6 +1,9 @@
 package com.example.rmasprojekat.screens
 
+import com.example.rmasprojekat.R
+import androidx.compose.ui.res.painterResource
 import android.graphics.drawable.Icon
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,16 +14,23 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.outlined.AddCircle
+import androidx.compose.material.icons.rounded.Face
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -42,8 +52,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.AbsoluteAlignment
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -59,6 +71,7 @@ fun AddPlace(onNavigateToMain: () -> Unit) {
     var opis by remember { mutableStateOf(TextFieldValue("")) }
     var selText by remember { mutableStateOf(TextFieldValue("Izaberi radnju")) }
     var isExpanded by remember { mutableStateOf(false) }
+    var showDate by remember { mutableStateOf(false) }
 
     Surface(
         color = Amber,
@@ -75,8 +88,11 @@ fun AddPlace(onNavigateToMain: () -> Unit) {
                 "Dodaj novu akciju!",
                 color = Color.White,
                 fontFamily = fontJockey,
-                fontSize = 40.sp
+                fontSize = 40.sp,
+                modifier = Modifier.padding(20.dp)
             )
+
+
             ExposedDropdownMenuBox(
                 expanded = isExpanded,
                 onExpandedChange = { isExpanded = !isExpanded }) {
@@ -119,6 +135,7 @@ fun AddPlace(onNavigateToMain: () -> Unit) {
                             isExpanded = false
                         })
                 }
+
             }
             TextField(
                 value = opis,
@@ -145,9 +162,60 @@ fun AddPlace(onNavigateToMain: () -> Unit) {
                     unfocusedIndicatorColor = Color.Transparent,
                 ),
             )
+
+            if (showDate) {
+                DatePickerDialog(
+                    onDismissRequest = { showDate = true },
+                    confirmButton = {
+                        Button(
+                            onClick = { showDate = false }
+                        ) {
+                            Text(text = "OK")
+                        }
+                    },
+                    dismissButton = {
+                        Button(
+                            onClick = { showDate = false }
+                        ) {
+                            Text(text = "Cancel")
+                        }
+                    },
+                ) {
+                }
+            }
+
+            Image(
+                painter = painterResource(R.drawable.noimage),
+                contentDescription = "avatar",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(250.dp)
+                    .clip(RoundedCornerShape(12.dp))
+            )
+            Button(
+                modifier = Modifier
+                    .shadow(
+                        3.dp, RoundedCornerShape(12.dp)
+                    ),
+                onClick = { /*TODO*/ },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White
+
+                ), shape = RoundedCornerShape(20)
+            ) {
+                Icon(
+                    tint = Amber,
+                    imageVector = Icons.Outlined.AddCircle,
+                    contentDescription = "Fotografija",
+                )
+            }
+            Button(onClick = { showDate = true }) {
+                Text(text = "datum")
+            }
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.Bottom
             ) {
 
                 FloatingActionButton(
@@ -172,6 +240,7 @@ fun AddPlace(onNavigateToMain: () -> Unit) {
                 ) {
                     Icon(imageVector = Icons.Filled.Done, contentDescription = "Cancel")
                 }
+
             }
         }
     }
