@@ -20,6 +20,7 @@ import com.example.rmasprojekat.screens.MainScreen
 import com.example.rmasprojekat.screens.Register
 import com.example.rmasprojekat.screens.ProfileScreen
 import com.example.rmasprojekat.screens.UserListScreen
+import com.example.rmasprojekat.screens.salesListScreen
 import com.example.rmasprojekat.ui.theme.RMASProjekatTheme
 
 class MainActivity : ComponentActivity() {
@@ -74,7 +75,20 @@ fun Navigation() {
             ProfileScreen(onNavigateToMain = { navController.popBackStack("main", false) })
         }
         composable("listOfUsers") {
-            UserListScreen(onNavigateToMain = { navController.popBackStack("main", false) })
+            UserListScreen(
+                onNavigateToMain = { navController.popBackStack("main", false) },
+                onNavigateToSales = {
+                    navController.popBackStack("main", false)
+                    navController.navigate("listOfSales")
+                }
+            )
+        }
+        composable("listOfSales") {
+            salesListScreen(onNavigateToMain = { navController.popBackStack("main", false) },
+                onNavigateToUsers = {
+                    navController.popBackStack("main", false)
+                    navController.navigate("listOfUsers")
+                })
         }
     }
 }

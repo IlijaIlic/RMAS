@@ -1,6 +1,8 @@
 package com.example.rmasprojekat.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,8 +13,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -23,6 +27,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,7 +37,8 @@ import com.example.rmasprojekat.ui.theme.Amber
 import com.example.rmasprojekat.ui.theme.fontJockey
 
 @Composable
-fun UserListScreen(onNavigateToMain: () -> Unit) {
+fun UserListScreen(onNavigateToMain: () -> Unit, onNavigateToSales: () -> Unit) {
+    val context = LocalContext.current
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -53,7 +61,25 @@ fun UserListScreen(onNavigateToMain: () -> Unit) {
                     color = Color.Black,
                     modifier = Modifier.padding(vertical = 10.dp)
                 )
-
+                Text(
+                    text = "/",
+                    fontSize = 40.sp,
+                    color = Color.Black,
+                    modifier = Modifier.padding(horizontal = 10.dp)
+                )
+                ClickableText(
+                    onClick = {
+                        onNavigateToSales()
+                    },
+                    text = AnnotatedString("Lista akcija"),
+                    style = TextStyle(
+                        fontFamily = fontJockey,
+                        fontSize = 20.sp,
+                        color = Amber,
+                    ),
+                    modifier = Modifier
+                        .padding(horizontal = 5.dp),
+                )
             }
         }
         item {

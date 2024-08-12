@@ -30,6 +30,7 @@ import androidx.compose.material.icons.rounded.Face
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -44,6 +45,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -72,7 +74,7 @@ fun AddPlace(onNavigateToMain: () -> Unit) {
     var selText by remember { mutableStateOf(TextFieldValue("Izaberi radnju")) }
     var isExpanded by remember { mutableStateOf(false) }
     var showDate by remember { mutableStateOf(false) }
-
+    val dateState = rememberDatePickerState()
     Surface(
         color = Amber,
         modifier = Modifier
@@ -102,8 +104,10 @@ fun AddPlace(onNavigateToMain: () -> Unit) {
                     onValueChange = {},
                     modifier = Modifier
                         .menuAnchor()
+                        .padding(10.dp)
                         .widthIn(0.dp, 250.dp)
                         .shadow(3.dp, RoundedCornerShape(12.dp)),
+
                     colors = TextFieldDefaults.colors(
                         focusedContainerColor = Color.White,
                         unfocusedContainerColor = Color.White,
@@ -165,43 +169,74 @@ fun AddPlace(onNavigateToMain: () -> Unit) {
 
             if (showDate) {
                 DatePickerDialog(
+                    colors = DatePickerDefaults.colors(
+                        containerColor = Color.White,
+                    ),
                     onDismissRequest = { showDate = true },
                     confirmButton = {
                         Button(
+                            colors = ButtonDefaults.buttonColors(
+                                contentColor = Color.White,
+                                containerColor = Amber
+                            ),
                             onClick = { showDate = false }
                         ) {
-                            Text(text = "OK")
+                            Text(text = "Prihvati")
                         }
                     },
                     dismissButton = {
                         Button(
+                            colors = ButtonDefaults.buttonColors(
+                                contentColor = Color.White,
+                                containerColor = Amber
+                            ),
                             onClick = { showDate = false }
                         ) {
-                            Text(text = "Cancel")
+                            Text(text = "Odustani")
                         }
                     },
                 ) {
+                    DatePicker(
+                        state = dateState, showModeToggle = true,
+                        colors = DatePickerDefaults.colors(
+                            containerColor = Color.White,
+                            titleContentColor = Amber,
+                            headlineContentColor = Amber,
+                            weekdayContentColor = Color.Black,
+                            subheadContentColor = Color.Black,
+                            dayContentColor = Color.Black,
+                            selectedDayContainerColor = Amber,
+                            selectedDayContentColor = AmberLight,
+                            todayContentColor = AmberLight,
+                            todayDateBorderColor = AmberLight,
+                            dayInSelectionRangeContentColor = Color.White,
+                            dayInSelectionRangeContainerColor = AmberLight,
+                            disabledDayContentColor = Color.Gray,
+                        )
+                    )
+
                 }
             }
 
             Image(
-                painter = painterResource(R.drawable.noimage),
+                painter = painterResource(R.drawable.noimageborder),
                 contentDescription = "avatar",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(250.dp)
                     .clip(RoundedCornerShape(12.dp))
+
             )
-            Button(
+            FloatingActionButton(
                 modifier = Modifier
+                    .padding(10.dp)
                     .shadow(
                         3.dp, RoundedCornerShape(12.dp)
                     ),
                 onClick = { /*TODO*/ },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White
-
-                ), shape = RoundedCornerShape(20)
+                containerColor = Color.White,
+                shape = RoundedCornerShape(20),
+                contentColor = Amber
             ) {
                 Icon(
                     tint = Amber,
@@ -209,8 +244,27 @@ fun AddPlace(onNavigateToMain: () -> Unit) {
                     contentDescription = "Fotografija",
                 )
             }
-            Button(onClick = { showDate = true }) {
-                Text(text = "datum")
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Button(
+                    onClick = { showDate = true },
+                    colors = ButtonDefaults.buttonColors(
+                        contentColor = Amber,
+                        containerColor = Color.White
+                    )
+                ) {
+                    Text(
+                        text = "Odaberi datum isteka akcije",
+                        fontFamily = fontJockey,
+                        color = Amber
+                    )
+                }
+                Text(
+                    text = "31.05.2001.",
+                    color = Color.White,
+                    fontFamily = fontJockey,
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(horizontal = 10.dp)
+                )
             }
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
