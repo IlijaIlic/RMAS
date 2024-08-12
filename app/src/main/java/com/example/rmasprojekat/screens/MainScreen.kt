@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.FloatingActionButton
@@ -28,6 +29,7 @@ fun MainScreen(
     onNavigateToAddPlace: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToUserList: () -> Unit,
+    onNavigateToViewSale: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -73,6 +75,16 @@ fun MainScreen(
                 onClick = { onNavigateToAddPlace() },
             ) {
                 Icon(imageVector = Icons.Filled.Add, contentDescription = "Add place")
+            }
+            FloatingActionButton(
+                containerColor = Amber,
+                contentColor = Color.White,
+                shape = CircleShape,
+                modifier = Modifier
+                    .padding(10.dp),
+                onClick = { onNavigateToViewSale() },
+            ) {
+                Icon(imageVector = Icons.Filled.LocationOn, contentDescription = "ViewPlace")
             }
         }
     }

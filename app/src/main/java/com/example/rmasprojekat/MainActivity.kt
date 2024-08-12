@@ -20,6 +20,7 @@ import com.example.rmasprojekat.screens.MainScreen
 import com.example.rmasprojekat.screens.Register
 import com.example.rmasprojekat.screens.ProfileScreen
 import com.example.rmasprojekat.screens.UserListScreen
+import com.example.rmasprojekat.screens.ViewSaleScreen
 import com.example.rmasprojekat.screens.salesListScreen
 import com.example.rmasprojekat.ui.theme.RMASProjekatTheme
 
@@ -66,6 +67,7 @@ fun Navigation() {
                 onNavigateToLanding = { navController.popBackStack("landing", false) },
                 onNavigateToProfile = { navController.navigate("profile") },
                 onNavigateToUserList = { navController.navigate("listOfUsers") },
+                onNavigateToViewSale = { navController.navigate("viewSale") }
             )
         }
         composable("addPlace") {
@@ -89,6 +91,9 @@ fun Navigation() {
                     navController.popBackStack("main", false)
                     navController.navigate("listOfUsers")
                 })
+        }
+        composable("viewSale") {
+            ViewSaleScreen(onNavigateToMain = { navController.popBackStack("main", false) })
         }
     }
 }
