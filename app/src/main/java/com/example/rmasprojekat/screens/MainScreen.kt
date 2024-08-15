@@ -1,6 +1,7 @@
 package com.example.rmasprojekat.screens
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -57,6 +58,13 @@ import androidx.compose.ui.window.Dialog
 import com.example.rmasprojekat.ui.theme.Amber
 import com.example.rmasprojekat.ui.theme.AmberLight
 import com.example.rmasprojekat.ui.theme.fontJockey
+import com.google.android.gms.maps.model.CameraPosition
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.GoogleMap
+import com.google.maps.android.compose.MapProperties
+import com.google.maps.android.compose.MapType
+import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.rememberCameraPositionState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,55 +85,63 @@ fun MainScreen(
     var selTextProd by remember { mutableStateOf(TextFieldValue("Izaberi Prodavnicu")) }
     val dateState = rememberDatePickerState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(10.dp),
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
+
+    val nis = LatLng(43.321445, 21.896104)
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(nis, 18f)
+    }
+    var uiSettings by remember { mutableStateOf(MapUiSettings()) }
+    var properties by remember {
+        mutableStateOf(MapProperties(mapType = MapType.NORMAL))
+    }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        GoogleMap(
+            modifier = Modifier.fillMaxSize(),
+            cameraPositionState = cameraPositionState,
+            properties = properties,
+            uiSettings = uiSettings
         ) {
-            FloatingActionButton(
-                onClick = { onNavigateToProfile() },
-                containerColor = Amber,
-                contentColor = Color.White,
-                shape = CircleShape,
-                modifier = Modifier
-                    .padding(10.dp)
-            ) {
-                Icon(imageVector = Icons.Filled.AccountCircle, contentDescription = "Profile")
-            }
-            FloatingActionButton(
-                onClick = { onNavigateToUserList() },
-                containerColor = Amber,
-                contentColor = Color.White,
-                shape = CircleShape,
-                modifier = Modifier
-                    .padding(10.dp)
-            ) {
-                Icon(imageVector = Icons.Filled.Search, contentDescription = "Profile")
-            }
+
+
         }
-        Row(
-            verticalAlignment = Alignment.Bottom,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp),
         ) {
-            FloatingActionButton(
-                containerColor = Amber,
-                contentColor = Color.White,
-                shape = CircleShape,
-                modifier = Modifier
-                    .padding(10.dp),
-                onClick = { openDialog = true },
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(imageVector = Icons.Filled.List, contentDescription = "List")
+                FloatingActionButton(
+                    onClick = { onNavigateToProfile() },
+                    containerColor = Amber,
+                    contentColor = Color.White,
+                    shape = CircleShape,
+                    modifier = Modifier
+                        .padding(10.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.AccountCircle,
+                        contentDescription = "Profile"
+                    )
+                }
+                FloatingActionButton(
+                    onClick = { onNavigateToUserList() },
+                    containerColor = Amber,
+                    contentColor = Color.White,
+                    shape = CircleShape,
+                    modifier = Modifier
+                        .padding(10.dp)
+                ) {
+                    Icon(imageVector = Icons.Filled.Search, contentDescription = "Profile")
+                }
             }
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.Bottom,
-                modifier = Modifier.fillMaxSize()
+            Row(
+                verticalAlignment = Alignment.Bottom,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
             ) {
                 FloatingActionButton(
                     containerColor = Amber,
@@ -133,335 +149,364 @@ fun MainScreen(
                     shape = CircleShape,
                     modifier = Modifier
                         .padding(10.dp),
-                    onClick = { onNavigateToAddPlace() },
+                    onClick = { openDialog = true },
                 ) {
-                    Icon(imageVector = Icons.Filled.Add, contentDescription = "Add place")
+                    Icon(imageVector = Icons.Filled.List, contentDescription = "List")
                 }
-                FloatingActionButton(
-                    containerColor = Amber,
-                    contentColor = Color.White,
-                    shape = CircleShape,
-                    modifier = Modifier
-                        .padding(10.dp),
-                    onClick = { onNavigateToViewSale() },
+                Column(
+                    horizontalAlignment = Alignment.End,
+                    verticalArrangement = Arrangement.Bottom,
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    Icon(imageVector = Icons.Filled.LocationOn, contentDescription = "ViewPlace")
-                }
-                when {
-                    openDialog -> {
-                        Dialog(onDismissRequest = { /*TODO*/ }) {
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(600.dp)
-                                    .padding(16.dp),
-                                shape = RoundedCornerShape(16.dp),
-                                colors = CardDefaults.cardColors(
-                                    containerColor = Color.White
-                                )
-                            ) {
-                                Column(
-                                    modifier = Modifier.fillMaxSize(),
-                                    verticalArrangement = Arrangement.SpaceBetween
+                    FloatingActionButton(
+                        containerColor = Amber,
+                        contentColor = Color.White,
+                        shape = CircleShape,
+                        modifier = Modifier
+                            .padding(10.dp),
+                        onClick = { onNavigateToAddPlace() },
+                    ) {
+                        Icon(imageVector = Icons.Filled.Add, contentDescription = "Add place")
+                    }
+                    FloatingActionButton(
+                        containerColor = Amber,
+                        contentColor = Color.White,
+                        shape = CircleShape,
+                        modifier = Modifier
+                            .padding(10.dp),
+                        onClick = { onNavigateToViewSale() },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.LocationOn,
+                            contentDescription = "ViewPlace"
+                        )
+                    }
+                    when {
+                        openDialog -> {
+                            Dialog(onDismissRequest = { /*TODO*/ }) {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(600.dp)
+                                        .padding(16.dp),
+                                    shape = RoundedCornerShape(16.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = Color.White
+                                    )
                                 ) {
-                                    FloatingActionButton(
-                                        shape = CircleShape,
-                                        onClick = { openDialog = false },
-                                        containerColor = Color.White,
-                                        modifier = Modifier
-                                            .padding(10.dp)
-                                            .shadow(4.dp, CircleShape)
+                                    Column(
+                                        modifier = Modifier.fillMaxSize(),
+                                        verticalArrangement = Arrangement.SpaceBetween
                                     ) {
-                                        Icon(
-                                            imageVector = Icons.Filled.ArrowBack,
-                                            contentDescription = "Back",
-                                            tint = Amber
-                                        )
-                                    }
-                                    Surface(
-                                        modifier = Modifier
-                                            .height(400.dp)
-                                            .fillMaxWidth(),
-                                        color = Color.White
-                                    ) {
-                                        Column(
+                                        FloatingActionButton(
+                                            shape = CircleShape,
+                                            onClick = { openDialog = false },
+                                            containerColor = Color.White,
                                             modifier = Modifier
-                                                .fillMaxSize()
                                                 .padding(10.dp)
+                                                .shadow(4.dp, CircleShape)
                                         ) {
-                                            ExposedDropdownMenuBox(
-                                                expanded = isExpanded,
-                                                onExpandedChange = {
-                                                    isExpanded = !isExpanded
-                                                }) {
-                                                TextField(
-                                                    textStyle = TextStyle.Default.copy(
-                                                        fontFamily = fontJockey
-                                                    ),
-                                                    value = selText,
-                                                    onValueChange = {},
-                                                    modifier = Modifier
-                                                        .menuAnchor()
-                                                        .padding(10.dp)
-                                                        .widthIn(0.dp, 250.dp)
-                                                        .shadow(
-                                                            3.dp,
-                                                            RoundedCornerShape(12.dp)
-                                                        ),
-
-                                                    colors = TextFieldDefaults.colors(
-                                                        focusedContainerColor = Color.White,
-                                                        unfocusedContainerColor = Color.White,
-                                                        focusedIndicatorColor = Color.Transparent,
-                                                        unfocusedIndicatorColor = Color.Transparent,
-                                                    ),
-                                                    trailingIcon = {
-                                                        ExposedDropdownMenuDefaults.TrailingIcon(
-                                                            expanded = isExpanded
-                                                        )
-                                                    },
-                                                    readOnly = true
-                                                )
-                                                ExposedDropdownMenu(
-                                                    expanded = isExpanded,
-                                                    onDismissRequest = { isExpanded = false }) {
-                                                    DropdownMenuItem(
-                                                        text = {
-                                                            Text(
-                                                                text = "Nis",
-                                                                fontFamily = fontJockey
-                                                            )
-                                                        },
-                                                        onClick = {
-                                                            selText = TextFieldValue("Nis")
-                                                            isExpanded = false
-                                                        })
-                                                    DropdownMenuItem(
-                                                        text = {
-                                                            Text(
-                                                                text = "Beograd",
-                                                                fontFamily = fontJockey
-                                                            )
-                                                        },
-                                                        onClick = {
-                                                            selText = TextFieldValue("Beograd")
-                                                            isExpanded = false
-                                                        })
-                                                    DropdownMenuItem(
-                                                        text = {
-                                                            Text(
-                                                                text = "Novi Sad",
-                                                                fontFamily = fontJockey
-                                                            )
-                                                        },
-                                                        onClick = {
-                                                            selText = TextFieldValue("Novi Sad")
-                                                            isExpanded = false
-                                                        })
-                                                }
-
-                                            }
-                                            ExposedDropdownMenuBox(
-                                                expanded = isExpandedProd,
-                                                onExpandedChange = {
-                                                    isExpandedProd = !isExpandedProd
-                                                }) {
-                                                TextField(
-                                                    textStyle = TextStyle.Default.copy(
-                                                        fontFamily = fontJockey
-                                                    ),
-                                                    value = selTextProd,
-                                                    onValueChange = {},
-                                                    modifier = Modifier
-                                                        .menuAnchor()
-                                                        .padding(10.dp)
-                                                        .widthIn(0.dp, 250.dp)
-                                                        .shadow(
-                                                            3.dp,
-                                                            RoundedCornerShape(12.dp)
-                                                        ),
-
-                                                    colors = TextFieldDefaults.colors(
-                                                        focusedContainerColor = Color.White,
-                                                        unfocusedContainerColor = Color.White,
-                                                        focusedIndicatorColor = Color.Transparent,
-                                                        unfocusedIndicatorColor = Color.Transparent,
-                                                    ),
-                                                    trailingIcon = {
-                                                        ExposedDropdownMenuDefaults.TrailingIcon(
-                                                            expanded = isExpandedProd
-                                                        )
-                                                    },
-                                                    readOnly = true
-                                                )
-                                                ExposedDropdownMenu(
-                                                    expanded = isExpandedProd,
-                                                    onDismissRequest = { isExpandedProd = false }) {
-                                                    DropdownMenuItem(
-                                                        text = {
-                                                            Text(
-                                                                text = "Roda",
-                                                                fontFamily = fontJockey
-                                                            )
-                                                        },
-                                                        onClick = {
-                                                            selTextProd = TextFieldValue("Roda")
-                                                            isExpandedProd = false
-                                                        })
-                                                    DropdownMenuItem(
-                                                        text = {
-                                                            Text(
-                                                                text = "Idea",
-                                                                fontFamily = fontJockey
-                                                            )
-                                                        },
-                                                        onClick = {
-                                                            selTextProd = TextFieldValue("Idea")
-                                                            isExpandedProd = false
-                                                        })
-                                                    DropdownMenuItem(
-                                                        text = {
-                                                            Text(
-                                                                text = "Lidl",
-                                                                fontFamily = fontJockey
-                                                            )
-                                                        },
-                                                        onClick = {
-                                                            selTextProd = TextFieldValue("Lidl")
-                                                            isExpandedProd = false
-                                                        })
-                                                }
-
-                                            }
-                                            FloatingActionButton(
-                                                onClick = { showDate = true },
-                                                shape = RoundedCornerShape(12.dp),
-                                                modifier = Modifier
-                                                    .padding(10.dp)
-                                                    .widthIn(250.dp, 250.dp)
-                                                    .shadow(
-                                                        3.dp,
-                                                        RoundedCornerShape(12.dp)
-                                                    ),
-                                                containerColor = Color.White
-                                            ) {
-                                                Text(
-                                                    text = "Izaberite datum isteka akcije",
-                                                    textAlign = TextAlign.Start,
-                                                    fontFamily = fontJockey,
-                                                    color = Color.Black
-                                                )
-                                            }
-                                            Text(
-                                                text = "Obim pretrage",
-                                                fontFamily = fontJockey
-                                            )
-                                            Slider(
-                                                value = sliderPosition,
-                                                onValueChange = { sliderPosition = it },
-                                                colors = SliderDefaults.colors(
-                                                    thumbColor = Amber,
-                                                    activeTrackColor = Amber,
-                                                    inactiveTrackColor = AmberLight,
-                                                ),
-                                                steps = 3,
-                                                valueRange = 0f..50f
+                                            Icon(
+                                                imageVector = Icons.Filled.ArrowBack,
+                                                contentDescription = "Back",
+                                                tint = Amber
                                             )
                                         }
-                                        if (showDate) {
-                                            DatePickerDialog(
-                                                colors = DatePickerDefaults.colors(
-                                                    containerColor = Color.White,
-                                                ),
-                                                onDismissRequest = { showDate = true },
-                                                confirmButton = {
-                                                    Button(
-                                                        colors = ButtonDefaults.buttonColors(
-                                                            contentColor = Color.White,
-                                                            containerColor = Amber
-                                                        ),
-                                                        onClick = { showDate = false }
-                                                    ) {
-                                                        Text(text = "Prihvati")
-                                                    }
-                                                },
-                                                dismissButton = {
-                                                    Button(
-                                                        colors = ButtonDefaults.buttonColors(
-                                                            contentColor = Color.White,
-                                                            containerColor = Amber
-                                                        ),
-                                                        onClick = { showDate = false }
-                                                    ) {
-                                                        Text(text = "Odustani")
-                                                    }
-                                                },
+                                        Surface(
+                                            modifier = Modifier
+                                                .height(400.dp)
+                                                .fillMaxWidth(),
+                                            color = Color.White
+                                        ) {
+                                            Column(
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .padding(10.dp)
                                             ) {
-                                                DatePicker(
-                                                    state = dateState, showModeToggle = true,
+                                                ExposedDropdownMenuBox(
+                                                    expanded = isExpanded,
+                                                    onExpandedChange = {
+                                                        isExpanded = !isExpanded
+                                                    }) {
+                                                    TextField(
+                                                        textStyle = TextStyle.Default.copy(
+                                                            fontFamily = fontJockey
+                                                        ),
+                                                        value = selText,
+                                                        onValueChange = {},
+                                                        modifier = Modifier
+                                                            .menuAnchor()
+                                                            .padding(10.dp)
+                                                            .widthIn(0.dp, 250.dp)
+                                                            .shadow(
+                                                                3.dp,
+                                                                RoundedCornerShape(12.dp)
+                                                            ),
+
+                                                        colors = TextFieldDefaults.colors(
+                                                            focusedContainerColor = Color.White,
+                                                            unfocusedContainerColor = Color.White,
+                                                            focusedIndicatorColor = Color.Transparent,
+                                                            unfocusedIndicatorColor = Color.Transparent,
+                                                        ),
+                                                        trailingIcon = {
+                                                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                                                expanded = isExpanded
+                                                            )
+                                                        },
+                                                        readOnly = true
+                                                    )
+                                                    ExposedDropdownMenu(
+                                                        expanded = isExpanded,
+                                                        onDismissRequest = {
+                                                            isExpanded = false
+                                                        }) {
+                                                        DropdownMenuItem(
+                                                            text = {
+                                                                Text(
+                                                                    text = "Nis",
+                                                                    fontFamily = fontJockey
+                                                                )
+                                                            },
+                                                            onClick = {
+                                                                selText = TextFieldValue("Nis")
+                                                                isExpanded = false
+                                                            })
+                                                        DropdownMenuItem(
+                                                            text = {
+                                                                Text(
+                                                                    text = "Beograd",
+                                                                    fontFamily = fontJockey
+                                                                )
+                                                            },
+                                                            onClick = {
+                                                                selText =
+                                                                    TextFieldValue("Beograd")
+                                                                isExpanded = false
+                                                            })
+                                                        DropdownMenuItem(
+                                                            text = {
+                                                                Text(
+                                                                    text = "Novi Sad",
+                                                                    fontFamily = fontJockey
+                                                                )
+                                                            },
+                                                            onClick = {
+                                                                selText =
+                                                                    TextFieldValue("Novi Sad")
+                                                                isExpanded = false
+                                                            })
+                                                    }
+
+                                                }
+                                                ExposedDropdownMenuBox(
+                                                    expanded = isExpandedProd,
+                                                    onExpandedChange = {
+                                                        isExpandedProd = !isExpandedProd
+                                                    }) {
+                                                    TextField(
+                                                        textStyle = TextStyle.Default.copy(
+                                                            fontFamily = fontJockey
+                                                        ),
+                                                        value = selTextProd,
+                                                        onValueChange = {},
+                                                        modifier = Modifier
+                                                            .menuAnchor()
+                                                            .padding(10.dp)
+                                                            .widthIn(0.dp, 250.dp)
+                                                            .shadow(
+                                                                3.dp,
+                                                                RoundedCornerShape(12.dp)
+                                                            ),
+
+                                                        colors = TextFieldDefaults.colors(
+                                                            focusedContainerColor = Color.White,
+                                                            unfocusedContainerColor = Color.White,
+                                                            focusedIndicatorColor = Color.Transparent,
+                                                            unfocusedIndicatorColor = Color.Transparent,
+                                                        ),
+                                                        trailingIcon = {
+                                                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                                                expanded = isExpandedProd
+                                                            )
+                                                        },
+                                                        readOnly = true
+                                                    )
+                                                    ExposedDropdownMenu(
+                                                        expanded = isExpandedProd,
+                                                        onDismissRequest = {
+                                                            isExpandedProd = false
+                                                        }) {
+                                                        DropdownMenuItem(
+                                                            text = {
+                                                                Text(
+                                                                    text = "Roda",
+                                                                    fontFamily = fontJockey
+                                                                )
+                                                            },
+                                                            onClick = {
+                                                                selTextProd =
+                                                                    TextFieldValue("Roda")
+                                                                isExpandedProd = false
+                                                            })
+                                                        DropdownMenuItem(
+                                                            text = {
+                                                                Text(
+                                                                    text = "Idea",
+                                                                    fontFamily = fontJockey
+                                                                )
+                                                            },
+                                                            onClick = {
+                                                                selTextProd =
+                                                                    TextFieldValue("Idea")
+                                                                isExpandedProd = false
+                                                            })
+                                                        DropdownMenuItem(
+                                                            text = {
+                                                                Text(
+                                                                    text = "Lidl",
+                                                                    fontFamily = fontJockey
+                                                                )
+                                                            },
+                                                            onClick = {
+                                                                selTextProd =
+                                                                    TextFieldValue("Lidl")
+                                                                isExpandedProd = false
+                                                            })
+                                                    }
+
+                                                }
+                                                FloatingActionButton(
+                                                    onClick = { showDate = true },
+                                                    shape = RoundedCornerShape(12.dp),
+                                                    modifier = Modifier
+                                                        .padding(10.dp)
+                                                        .widthIn(250.dp, 250.dp)
+                                                        .shadow(
+                                                            3.dp,
+                                                            RoundedCornerShape(12.dp)
+                                                        ),
+                                                    containerColor = Color.White
+                                                ) {
+                                                    Text(
+                                                        text = "Izaberite datum isteka akcije",
+                                                        textAlign = TextAlign.Start,
+                                                        fontFamily = fontJockey,
+                                                        color = Color.Black
+                                                    )
+                                                }
+                                                Text(
+                                                    text = "Obim pretrage",
+                                                    fontFamily = fontJockey
+                                                )
+                                                Slider(
+                                                    value = sliderPosition,
+                                                    onValueChange = { sliderPosition = it },
+                                                    colors = SliderDefaults.colors(
+                                                        thumbColor = Amber,
+                                                        activeTrackColor = Amber,
+                                                        inactiveTrackColor = AmberLight,
+                                                    ),
+                                                    steps = 3,
+                                                    valueRange = 0f..50f
+                                                )
+                                            }
+                                            if (showDate) {
+                                                DatePickerDialog(
                                                     colors = DatePickerDefaults.colors(
                                                         containerColor = Color.White,
-                                                        titleContentColor = Amber,
-                                                        headlineContentColor = Amber,
-                                                        weekdayContentColor = Color.Black,
-                                                        subheadContentColor = Color.Black,
-                                                        dayContentColor = Color.Black,
-                                                        selectedDayContainerColor = Amber,
-                                                        selectedDayContentColor = AmberLight,
-                                                        todayContentColor = AmberLight,
-                                                        todayDateBorderColor = AmberLight,
-                                                        dayInSelectionRangeContentColor = Color.White,
-                                                        dayInSelectionRangeContainerColor = AmberLight,
-                                                        disabledDayContentColor = Color.Gray,
+                                                    ),
+                                                    onDismissRequest = { showDate = true },
+                                                    confirmButton = {
+                                                        Button(
+                                                            colors = ButtonDefaults.buttonColors(
+                                                                contentColor = Color.White,
+                                                                containerColor = Amber
+                                                            ),
+                                                            onClick = { showDate = false }
+                                                        ) {
+                                                            Text(text = "Prihvati")
+                                                        }
+                                                    },
+                                                    dismissButton = {
+                                                        Button(
+                                                            colors = ButtonDefaults.buttonColors(
+                                                                contentColor = Color.White,
+                                                                containerColor = Amber
+                                                            ),
+                                                            onClick = { showDate = false }
+                                                        ) {
+                                                            Text(text = "Odustani")
+                                                        }
+                                                    },
+                                                ) {
+                                                    DatePicker(
+                                                        state = dateState,
+                                                        showModeToggle = true,
+                                                        colors = DatePickerDefaults.colors(
+                                                            containerColor = Color.White,
+                                                            titleContentColor = Amber,
+                                                            headlineContentColor = Amber,
+                                                            weekdayContentColor = Color.Black,
+                                                            subheadContentColor = Color.Black,
+                                                            dayContentColor = Color.Black,
+                                                            selectedDayContainerColor = Amber,
+                                                            selectedDayContentColor = AmberLight,
+                                                            todayContentColor = AmberLight,
+                                                            todayDateBorderColor = AmberLight,
+                                                            dayInSelectionRangeContentColor = Color.White,
+                                                            dayInSelectionRangeContainerColor = AmberLight,
+                                                            disabledDayContentColor = Color.Gray,
+                                                        )
                                                     )
-                                                )
 
+                                                }
+                                            }
+                                        }
+
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(100.dp),
+                                            verticalAlignment = Alignment.Bottom,
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                        ) {
+                                            Button(
+                                                onClick = { openDialog = false },
+                                                colors = ButtonDefaults.buttonColors(
+                                                    containerColor = Amber
+                                                ),
+                                                modifier = Modifier.padding(10.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Filled.Close,
+                                                    contentDescription = "Close"
+                                                )
+                                            }
+                                            Button(
+                                                onClick = { openDialog = false },
+                                                colors = ButtonDefaults.buttonColors(
+                                                    containerColor = Amber
+                                                ),
+                                                modifier = Modifier.padding(10.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Filled.Done,
+                                                    contentDescription = "Done"
+                                                )
                                             }
                                         }
                                     }
 
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(100.dp),
-                                        verticalAlignment = Alignment.Bottom,
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                    ) {
-                                        Button(
-                                            onClick = { openDialog = false },
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = Amber
-                                            ),
-                                            modifier = Modifier.padding(10.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Filled.Close,
-                                                contentDescription = "Close"
-                                            )
-                                        }
-                                        Button(
-                                            onClick = { openDialog = false },
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = Amber
-                                            ),
-                                            modifier = Modifier.padding(10.dp)
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Filled.Done,
-                                                contentDescription = "Done"
-                                            )
-                                        }
-                                    }
+
                                 }
-
-
                             }
-                        }
 
+                        }
                     }
                 }
             }
-        }
 
+        }
     }
 }
