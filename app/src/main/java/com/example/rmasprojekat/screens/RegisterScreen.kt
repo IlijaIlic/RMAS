@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,21 +48,31 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.rmasprojekat.ui.LoginVM
+import com.example.rmasprojekat.ui.RegisterVM
 import com.example.rmasprojekat.ui.theme.Amber
 import com.example.rmasprojekat.ui.theme.fontJockey
+import compose.icons.FeatherIcons
+import compose.icons.feathericons.Eye
+import compose.icons.feathericons.EyeOff
 
 @Composable
 fun Register(
     onNavigateToLogin: () -> Unit,
     onNavigateToLanding: () -> Unit,
-    onNavigateToMain: () -> Unit
+    onNavigateToMain: () -> Unit,
+    vwModel: RegisterVM = viewModel()
+
 ) {
-    var email by remember { mutableStateOf(TextFieldValue("")) }
-    var password by remember { mutableStateOf(TextFieldValue("")) }
+
+    val email by vwModel.emailRegister.collectAsState()
+    val password by vwModel.passwordRegister.collectAsState()
+    val ime by vwModel.imeRegister.collectAsState()
+    val prezime by vwModel.prezimeRegister.collectAsState()
+    val phoneNumber by vwModel.phoneNumberRegister.collectAsState()
+    val showPassword by vwModel.showPasswordRegister.collectAsState()
     var passwordVisible by remember { mutableStateOf(false) }
-    var ime by remember { mutableStateOf(TextFieldValue("")) }
-    var prezime by remember { mutableStateOf(TextFieldValue("")) }
-    var phoneNumber by remember { mutableStateOf(TextFieldValue("")) }
 
     LazyColumn(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -97,7 +108,7 @@ fun Register(
                 TextField(
                     placeholder = { Text("Ime", color = Amber, fontFamily = fontJockey) },
                     value = ime,
-                    onValueChange = { newText -> ime = newText },
+                    onValueChange = { newText -> vwModel.updateImeTp(newText) },
                     modifier = Modifier
                         .padding(5.dp)
                         .widthIn(0.dp, 125.dp)
@@ -112,7 +123,7 @@ fun Register(
                 TextField(
                     placeholder = { Text("Prezime", color = Amber, fontFamily = fontJockey) },
                     value = prezime,
-                    onValueChange = { newText -> prezime = newText },
+                    onValueChange = { newText -> vwModel.updatePrezimeTp(newText) },
                     modifier = Modifier
                         .padding(5.dp)
                         .widthIn(0.dp, 125.dp)
@@ -130,7 +141,7 @@ fun Register(
             TextField(
                 placeholder = { Text("Email", color = Amber, fontFamily = fontJockey) },
                 value = email,
-                onValueChange = { newText -> email = newText },
+                onValueChange = { newText -> vwModel.updateEmailTp(newText) },
                 modifier = Modifier
                     .padding(10.dp)
                     .widthIn(0.dp, 250.dp)
@@ -148,7 +159,7 @@ fun Register(
                 keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
                 placeholder = { Text("Broj telefona", color = Amber, fontFamily = fontJockey) },
                 value = phoneNumber,
-                onValueChange = { newText -> phoneNumber = newText },
+                onValueChange = { newText -> vwModel.updatePhoneTp(newText) },
                 modifier = Modifier
                     .padding(10.dp)
                     .widthIn(0.dp, 250.dp)
@@ -165,7 +176,7 @@ fun Register(
             TextField(
                 placeholder = { Text("Lozinka", color = Amber, fontFamily = fontJockey) },
                 value = password,
-                onValueChange = { newText -> password = newText },
+                onValueChange = { newText -> vwModel.updatePasswordTp(newText) },
                 modifier = Modifier
                     .padding(10.dp)
                     .widthIn(0.dp, 250.dp)
@@ -177,13 +188,13 @@ fun Register(
                     unfocusedIndicatorColor = Color.Transparent
                 ),
                 singleLine = true,
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    val image = if (passwordVisible)
-                        Icons.Rounded.Lock
-                    else Icons.Filled.Lock
-                    val description = if (passwordVisible) "Hide password" else "Show password"
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    val image = if (showPassword)
+                        FeatherIcons.Eye
+                    else FeatherIcons.EyeOff
+                    val description = if (showPassword) "Hide password" else "Show password"
+                    IconButton(onClick = { vwModel.updateShowPasswordLogin(!showPassword) }) {
                         Icon(imageVector = image, contentDescription = description)
                     }
                 }

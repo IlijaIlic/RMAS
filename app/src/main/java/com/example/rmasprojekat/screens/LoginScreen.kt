@@ -24,6 +24,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,19 +42,27 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.rmasprojekat.ui.LoginVM
 import com.example.rmasprojekat.ui.theme.Amber
 import com.example.rmasprojekat.ui.theme.fontJockey
+import compose.icons.FeatherIcons
+import compose.icons.feathericons.Eye
+import compose.icons.feathericons.EyeOff
 
 @Composable
 fun Login(
     onNavigateToRegister: () -> Unit,
     onNavigateToLanding: () -> Unit,
-    onNavigateToMain: () -> Unit
+    onNavigateToMain: () -> Unit,
+    vwModel: LoginVM = viewModel()
 ) {
 
-    var email by remember { mutableStateOf(TextFieldValue("")) }
-    var password by remember { mutableStateOf(TextFieldValue("")) }
-    var passwordVisible by remember { mutableStateOf(false) }
+
+    val email by vwModel.emailLogin.collectAsState()
+    val password by vwModel.passwordLogin.collectAsState()
+    val showPassword by vwModel.showPasswordLogin.collectAsState()
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -82,7 +92,7 @@ fun Login(
                 placeholder = { Text("Unesi email", color = Amber, fontFamily = fontJockey) },
                 value = email,
                 onValueChange = { newText ->
-                    email = newText
+                    vwModel.updateEmailTp(newText)
                 },
                 singleLine = true,
                 modifier = Modifier
@@ -102,7 +112,7 @@ fun Login(
                 placeholder = { Text("Unesi sifru", color = Amber, fontFamily = fontJockey) },
                 value = password,
                 onValueChange = { newText ->
-                    password = newText
+                    vwModel.updatePasswordTp(newText)
                 },
                 modifier = Modifier
                     .padding(10.dp)
@@ -115,17 +125,15 @@ fun Login(
                     unfocusedIndicatorColor = Color.Transparent,
                 ),
                 singleLine = true,
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    val image = if (passwordVisible)
-                        Icons.Rounded.Lock
-                    else Icons.Filled.Lock
+                    val image = if (showPassword)
+                        FeatherIcons.Eye
+                    else FeatherIcons.EyeOff
 
-                    // Localized description for accessibility services
-                    val description = if (passwordVisible) "Hide password" else "Show password"
+                    val description = if (showPassword) "Hide password" else "Show password"
 
-                    // Toggle button to hide or display password
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    IconButton(onClick = { vwModel.updateShowPasswordLogin(!showPassword) }) {
                         Icon(imageVector = image, description)
                     }
                 }

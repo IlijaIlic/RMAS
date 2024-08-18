@@ -55,6 +55,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.rmasprojekat.ui.theme.Amber
 import com.example.rmasprojekat.ui.theme.AmberLight
 import com.example.rmasprojekat.ui.theme.fontJockey
@@ -73,7 +74,7 @@ fun MainScreen(
     onNavigateToAddPlace: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToUserList: () -> Unit,
-    onNavigateToViewSale: () -> Unit,
+    onNavigateToViewSale: () -> Unit
 ) {
 
     var sliderPosition by remember { mutableFloatStateOf(0f) }
@@ -90,7 +91,15 @@ fun MainScreen(
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(nis, 18f)
     }
-    var uiSettings by remember { mutableStateOf(MapUiSettings()) }
+    var uiSettings by remember {
+        mutableStateOf(
+            MapUiSettings(
+                zoomControlsEnabled = false,
+                compassEnabled = false,
+
+                )
+        )
+    }
     var properties by remember {
         mutableStateOf(MapProperties(mapType = MapType.NORMAL))
     }
