@@ -19,8 +19,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
@@ -86,6 +88,7 @@ fun AddPlace(
         color = Amber,
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
     ) {
         Column(
             modifier = Modifier
@@ -179,6 +182,8 @@ fun AddPlace(
                     colors = DatePickerDefaults.colors(
                         containerColor = Color.White,
                     ),
+                    modifier = Modifier
+                        .verticalScroll(rememberScrollState()),
                     onDismissRequest = { vwModel.updateShowDate(true) },
                     confirmButton = {
                         Button(

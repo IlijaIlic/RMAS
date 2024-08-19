@@ -23,6 +23,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -30,6 +31,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,22 +47,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.rmasprojekat.R
+import com.example.rmasprojekat.ui.ProfileVM
 import com.example.rmasprojekat.ui.theme.Amber
 import com.example.rmasprojekat.ui.theme.AmberLight
 import com.example.rmasprojekat.ui.theme.fontJockey
+import compose.icons.FeatherIcons
+import compose.icons.feathericons.ArrowLeft
+import compose.icons.feathericons.LogOut
 
 @Composable
-fun ProfileScreen(onNavigateToMain: () -> Unit) {
-
-    var checked by remember { mutableStateOf(true) }
-    //ime
-    //prezime
-    //email
-    //brTelefona
-    //brojbodova
-    //servisChecked
-
+fun ProfileScreen(
+    onNavigateToMain: () -> Unit,
+    vwModel: ProfileVM = viewModel()
+) {
+    val ime by vwModel.imeProf.collectAsState()
+    val prezime by vwModel.prezimeProf.collectAsState()
+    val email by vwModel.emailProf.collectAsState()
+    val brTelefona by vwModel.brojTelefonaProf.collectAsState()
+    val brojBodova by vwModel.brojBodovaProf.collectAsState()
+    val checked by vwModel.serviceCheckedProf.collectAsState()
 
     //
     //Screen za sacuvane akcije, istoriju postavljenih i promenu podataka
@@ -80,7 +87,7 @@ fun ProfileScreen(onNavigateToMain: () -> Unit) {
                         modifier = Modifier.padding(20.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.ArrowBack,
+                            imageVector = FeatherIcons.ArrowLeft,
                             contentDescription = "goBack"
                         )
                     }
@@ -114,7 +121,7 @@ fun ProfileScreen(onNavigateToMain: () -> Unit) {
                     )
                     Column {
                         Text(
-                            text = "Petar",
+                            text = ime,
                             fontFamily = fontJockey,
                             fontSize = 65.sp,
                             color = Amber,
@@ -122,7 +129,7 @@ fun ProfileScreen(onNavigateToMain: () -> Unit) {
 
                             )
                         Text(
-                            text = "Petrovic",
+                            text = prezime,
                             fontFamily = fontJockey,
                             fontSize = 65.sp,
                             color = Amber,
@@ -143,9 +150,9 @@ fun ProfileScreen(onNavigateToMain: () -> Unit) {
                             .padding(20.dp),
                         fontWeight = FontWeight.Thin
                     )
-                    Divider(
-                        thickness = 2.dp, color = Amber,
-                        modifier = Modifier.padding(end = 20.dp)
+                    HorizontalDivider(
+                        modifier = Modifier.padding(end = 20.dp),
+                        thickness = 2.dp, color = Amber
                     )
                 }
 
@@ -168,7 +175,7 @@ fun ProfileScreen(onNavigateToMain: () -> Unit) {
                             fontSize = 20.sp,
                         )
                         Text(
-                            text = "perinmain@gmail.com",
+                            text = email,
                             color = Color.Black,
                             fontFamily = fontJockey,
                             fontSize = 20.sp
@@ -186,7 +193,7 @@ fun ProfileScreen(onNavigateToMain: () -> Unit) {
                             fontSize = 20.sp
                         )
                         Text(
-                            text = "06165123",
+                            text = brTelefona,
                             color = Color.Black,
                             fontFamily = fontJockey,
                             fontSize = 20.sp
@@ -232,9 +239,9 @@ fun ProfileScreen(onNavigateToMain: () -> Unit) {
                         modifier = Modifier
                             .padding(20.dp)
                     )
-                    Divider(
-                        thickness = 2.dp, color = Amber,
-                        modifier = Modifier.padding(end = 20.dp)
+                    HorizontalDivider(
+                        modifier = Modifier.padding(end = 20.dp),
+                        thickness = 2.dp, color = Amber
                     )
                 }
                 Column(
@@ -254,7 +261,7 @@ fun ProfileScreen(onNavigateToMain: () -> Unit) {
                             fontSize = 20.sp,
                         )
                         Text(
-                            text = "156",
+                            text = brojBodova.toString(),
                             color = Color.Black,
                             fontFamily = fontJockey,
                             fontSize = 20.sp
@@ -306,7 +313,7 @@ fun ProfileScreen(onNavigateToMain: () -> Unit) {
                         Switch(
                             checked = checked,
                             onCheckedChange = {
-                                checked = it
+                                vwModel.updateServiceCheckedProf(it)
                             },
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = Color.White,
@@ -334,7 +341,7 @@ fun ProfileScreen(onNavigateToMain: () -> Unit) {
                             modifier = Modifier.padding(horizontal = 5.dp)
                         )
                         Icon(
-                            imageVector = Icons.Filled.ExitToApp,
+                            imageVector = FeatherIcons.LogOut,
                             contentDescription = "Logout",
                             modifier = Modifier.padding(horizontal = 5.dp)
                         )

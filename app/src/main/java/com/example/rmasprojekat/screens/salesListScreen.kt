@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Build
@@ -39,6 +41,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -54,21 +57,28 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.rmasprojekat.ui.SalesVM
 import com.example.rmasprojekat.ui.theme.Amber
 import com.example.rmasprojekat.ui.theme.AmberLight
 import com.example.rmasprojekat.ui.theme.fontJockey
+import compose.icons.FeatherIcons
+import compose.icons.feathericons.ArrowLeft
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit) {
-    var search by remember { mutableStateOf(TextFieldValue("")) }
-    var openDialog by remember { mutableStateOf(false) }
-    var isExpanded by remember { mutableStateOf(false) }
-    var showDate by remember { mutableStateOf(false) }
-    var selText by remember { mutableStateOf(TextFieldValue("Izaberi Lokaciju")) }
-    var isExpandedProd by remember { mutableStateOf(false) }
-    var selTextProd by remember { mutableStateOf(TextFieldValue("Izaberi Prodavnicu")) }
-    val dateState = rememberDatePickerState()
+fun salesListScreen(
+    onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit,
+    vwModel: SalesVM = viewModel()
+) {
+    val search by vwModel.searchSales.collectAsState()
+    val openDialog by vwModel.openDialogMain.collectAsState()
+    val showDate by vwModel.showDateMain.collectAsState()
+    val isExpanded by vwModel.isExpandedMain.collectAsState()
+    val selText by vwModel.selTextMain.collectAsState()
+    val isExpandedProd by vwModel.isExpandedProdMain.collectAsState()
+    val selTextProd by vwModel.selTextProdMain.collectAsState()
+    val dateState = vwModel.dateState
 
 
 
@@ -85,7 +95,7 @@ fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit)
                     modifier = Modifier
                         .padding(20.dp),
                     onClick = { onNavigateToMain() }) {
-                    Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "goBack")
+                    Icon(imageVector = FeatherIcons.ArrowLeft, contentDescription = "goBack")
                 }
                 ClickableText(
                     onClick = { onNavigateToUsers() },
@@ -128,7 +138,7 @@ fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit)
                         )
                     },
                     value = search,
-                    onValueChange = { newText -> search = newText },
+                    onValueChange = { newText -> vwModel.updateSearchSales(newText) },
                     modifier = Modifier
                         .padding(5.dp)
                         .widthIn(300.dp, 300.dp)
@@ -153,7 +163,7 @@ fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit)
                         .widthIn(150.dp, 150.dp)
                         .padding(vertical = 10.dp)
                         .shadow(5.dp, shape = RoundedCornerShape(30.dp)),
-                    onClick = { openDialog = true },
+                    onClick = { vwModel.updateOpenDialog(true) },
                     containerColor = Color.White
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -179,7 +189,8 @@ fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit)
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(600.dp)
-                                    .padding(16.dp),
+                                    .padding(16.dp)
+                                    .verticalScroll(rememberScrollState()),
                                 shape = RoundedCornerShape(16.dp),
                                 colors = CardDefaults.cardColors(
                                     containerColor = Color.White
@@ -191,14 +202,14 @@ fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit)
                                 ) {
                                     FloatingActionButton(
                                         shape = CircleShape,
-                                        onClick = { openDialog = false },
+                                        onClick = { vwModel.updateOpenDialog(false) },
                                         containerColor = Color.White,
                                         modifier = Modifier
                                             .padding(10.dp)
                                             .shadow(4.dp, CircleShape)
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Filled.ArrowBack,
+                                            imageVector = FeatherIcons.ArrowLeft,
                                             contentDescription = "Back",
                                             tint = Amber
                                         )
@@ -217,7 +228,7 @@ fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit)
                                             ExposedDropdownMenuBox(
                                                 expanded = isExpanded,
                                                 onExpandedChange = {
-                                                    isExpanded = !isExpanded
+                                                    vwModel.updateIsExpanded(!isExpanded)
                                                 }) {
                                                 TextField(
                                                     textStyle = TextStyle.Default.copy(
@@ -249,7 +260,11 @@ fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit)
                                                 )
                                                 ExposedDropdownMenu(
                                                     expanded = isExpanded,
-                                                    onDismissRequest = { isExpanded = false }) {
+                                                    onDismissRequest = {
+                                                        vwModel.updateIsExpanded(
+                                                            false
+                                                        )
+                                                    }) {
                                                     DropdownMenuItem(
                                                         text = {
                                                             Text(
@@ -258,8 +273,8 @@ fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit)
                                                             )
                                                         },
                                                         onClick = {
-                                                            selText = TextFieldValue("Nis")
-                                                            isExpanded = false
+                                                            vwModel.updateSelTextMain("Nis")
+                                                            vwModel.updateIsExpanded(!isExpanded)
                                                         })
                                                     DropdownMenuItem(
                                                         text = {
@@ -269,8 +284,8 @@ fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit)
                                                             )
                                                         },
                                                         onClick = {
-                                                            selText = TextFieldValue("Beograd")
-                                                            isExpanded = false
+                                                            vwModel.updateSelTextMain("Beograd")
+                                                            vwModel.updateIsExpanded(!isExpanded)
                                                         })
                                                     DropdownMenuItem(
                                                         text = {
@@ -280,8 +295,8 @@ fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit)
                                                             )
                                                         },
                                                         onClick = {
-                                                            selText = TextFieldValue("Novi Sad")
-                                                            isExpanded = false
+                                                            vwModel.updateSelTextMain("Novi Sad")
+                                                            vwModel.updateIsExpanded(!isExpanded)
                                                         })
                                                 }
 
@@ -289,7 +304,7 @@ fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit)
                                             ExposedDropdownMenuBox(
                                                 expanded = isExpandedProd,
                                                 onExpandedChange = {
-                                                    isExpandedProd = !isExpandedProd
+                                                    vwModel.updateIsExpandedProd(!isExpandedProd)
                                                 }) {
                                                 TextField(
                                                     textStyle = TextStyle.Default.copy(
@@ -321,7 +336,9 @@ fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit)
                                                 )
                                                 ExposedDropdownMenu(
                                                     expanded = isExpandedProd,
-                                                    onDismissRequest = { isExpandedProd = false }) {
+                                                    onDismissRequest = {
+                                                        vwModel.updateIsExpandedProd(false)
+                                                    }) {
                                                     DropdownMenuItem(
                                                         text = {
                                                             Text(
@@ -330,8 +347,8 @@ fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit)
                                                             )
                                                         },
                                                         onClick = {
-                                                            selTextProd = TextFieldValue("Roda")
-                                                            isExpandedProd = false
+                                                            vwModel.updateSelTextProdMain("Roda")
+                                                            vwModel.updateIsExpandedProd(false)
                                                         })
                                                     DropdownMenuItem(
                                                         text = {
@@ -341,8 +358,8 @@ fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit)
                                                             )
                                                         },
                                                         onClick = {
-                                                            selTextProd = TextFieldValue("Idea")
-                                                            isExpandedProd = false
+                                                            vwModel.updateSelTextProdMain("Idea")
+                                                            vwModel.updateIsExpandedProd(false)
                                                         })
                                                     DropdownMenuItem(
                                                         text = {
@@ -352,14 +369,14 @@ fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit)
                                                             )
                                                         },
                                                         onClick = {
-                                                            selTextProd = TextFieldValue("Lidl")
-                                                            isExpandedProd = false
+                                                            vwModel.updateSelTextProdMain("Lidl")
+                                                            vwModel.updateIsExpandedProd(false)
                                                         })
                                                 }
 
                                             }
                                             FloatingActionButton(
-                                                onClick = { showDate = true },
+                                                onClick = { vwModel.updateShowDate(true) },
                                                 shape = RoundedCornerShape(12.dp),
                                                 modifier = Modifier
                                                     .padding(10.dp)
@@ -371,7 +388,7 @@ fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit)
                                                 containerColor = Color.White
                                             ) {
                                                 Text(
-                                                    text = "Izaberite datum isteka akcije",
+                                                    text = vwModel.getFormattedDate(),
                                                     textAlign = TextAlign.Start,
                                                     fontFamily = fontJockey,
                                                     color = Color.Black
@@ -383,14 +400,17 @@ fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit)
                                                 colors = DatePickerDefaults.colors(
                                                     containerColor = Color.White,
                                                 ),
-                                                onDismissRequest = { showDate = true },
+                                                modifier = Modifier.verticalScroll(
+                                                    rememberScrollState()
+                                                ),
+                                                onDismissRequest = { vwModel.updateShowDate(true) },
                                                 confirmButton = {
                                                     Button(
                                                         colors = ButtonDefaults.buttonColors(
                                                             contentColor = Color.White,
                                                             containerColor = Amber
                                                         ),
-                                                        onClick = { showDate = false }
+                                                        onClick = { vwModel.updateShowDate(false) }
                                                     ) {
                                                         Text(text = "Prihvati")
                                                     }
@@ -401,14 +421,14 @@ fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit)
                                                             contentColor = Color.White,
                                                             containerColor = Amber
                                                         ),
-                                                        onClick = { showDate = false }
+                                                        onClick = { vwModel.updateShowDate(false) }
                                                     ) {
                                                         Text(text = "Odustani")
                                                     }
                                                 },
                                             ) {
                                                 DatePicker(
-                                                    state = dateState, showModeToggle = true,
+                                                    state = dateState.value, showModeToggle = true,
                                                     colors = DatePickerDefaults.colors(
                                                         containerColor = Color.White,
                                                         titleContentColor = Amber,
@@ -438,7 +458,7 @@ fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit)
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                     ) {
                                         Button(
-                                            onClick = { openDialog = false },
+                                            onClick = { vwModel.updateOpenDialog(false) },
                                             colors = ButtonDefaults.buttonColors(
                                                 containerColor = Amber
                                             ),
@@ -450,7 +470,7 @@ fun salesListScreen(onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit)
                                             )
                                         }
                                         Button(
-                                            onClick = { openDialog = false },
+                                            onClick = { vwModel.updateOpenDialog(false) },
                                             colors = ButtonDefaults.buttonColors(
                                                 containerColor = Amber
                                             ),

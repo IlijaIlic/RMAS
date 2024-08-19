@@ -38,7 +38,7 @@ import com.example.rmasprojekat.ui.theme.fontJockey
 
 @Composable
 fun UserListScreen(onNavigateToMain: () -> Unit, onNavigateToSales: () -> Unit) {
-    val context = LocalContext.current
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()

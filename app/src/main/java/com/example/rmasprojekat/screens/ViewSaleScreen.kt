@@ -22,6 +22,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,12 +33,29 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.rmasprojekat.R
+import com.example.rmasprojekat.ui.ViewSaleVM
 import com.example.rmasprojekat.ui.theme.Amber
 import com.example.rmasprojekat.ui.theme.fontJockey
+import compose.icons.FeatherIcons
+import compose.icons.feathericons.ArrowLeft
+import compose.icons.feathericons.Circle
+import compose.icons.feathericons.Eye
+import compose.icons.feathericons.EyeOff
+import compose.icons.feathericons.Heart
 
 @Composable
-fun ViewSaleScreen(onNavigateToMain: () -> Unit) {
+fun ViewSaleScreen(
+    onNavigateToMain: () -> Unit,
+    vwModel: ViewSaleVM = viewModel()
+) {
+
+    val prodavnica by vwModel.prodavnicaSale.collectAsState()
+    val opis by vwModel.opisSale.collectAsState()
+    val liked by vwModel.likedSale.collectAsState()
+    val autor by vwModel.autorSale.collectAsState()
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Amber
@@ -57,13 +76,13 @@ fun ViewSaleScreen(onNavigateToMain: () -> Unit) {
                         .padding(10.dp),
 
                     ) {
-                    Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = "Go Back")
+                    Icon(imageVector = FeatherIcons.ArrowLeft, contentDescription = "Go Back")
                 }
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
                 Text(
                     textAlign = TextAlign.Center,
-                    text = "Idea",
+                    text = prodavnica,
                     fontFamily = fontJockey,
                     fontSize = 70.sp,
                     color = Color.White
@@ -84,7 +103,7 @@ fun ViewSaleScreen(onNavigateToMain: () -> Unit) {
                         .clip(RoundedCornerShape(12.dp))
                 )
                 Text(
-                    text = "OPIS",
+                    text = opis,
                     fontFamily = fontJockey,
                     color = Color.White,
                     fontSize = 30.sp,
@@ -92,10 +111,13 @@ fun ViewSaleScreen(onNavigateToMain: () -> Unit) {
                 )
 
                 IconButton(
-                    onClick = {},
+                    onClick = { vwModel.updateLikedSale(!liked) },
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Favorite,
+                        imageVector =
+                        if (liked)
+                            FeatherIcons.Heart
+                        else FeatherIcons.Circle,
                         contentDescription = "Like",
                         tint = Color.White
                     )
@@ -109,7 +131,7 @@ fun ViewSaleScreen(onNavigateToMain: () -> Unit) {
                         fontSize = 20.sp,
                     )
                     Text(
-                        text = "Petar Petrovic",
+                        text = autor,
                         fontFamily = fontJockey,
                         color = Color.White,
                         fontSize = 20.sp,
