@@ -47,6 +47,7 @@ import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -62,19 +63,25 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.rmasprojekat.ui.AddPlaceVM
 import com.example.rmasprojekat.ui.theme.Amber
 import com.example.rmasprojekat.ui.theme.AmberLight
 import com.example.rmasprojekat.ui.theme.fontJockey
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddPlace(onNavigateToMain: () -> Unit) {
+fun AddPlace(
+    onNavigateToMain: () -> Unit,
+    vwModel: AddPlaceVM = viewModel()
+) {
 
-    var opis by remember { mutableStateOf(TextFieldValue("")) }
-    var selText by remember { mutableStateOf(TextFieldValue("Izaberi radnju")) }
-    var isExpanded by remember { mutableStateOf(false) }
-    var showDate by remember { mutableStateOf(false) }
-    val dateState = rememberDatePickerState()
+    val opis by vwModel.opisAdd.collectAsState()
+    val selText by vwModel.selTextAdd.collectAsState()
+    val isExpanded by vwModel.isExpandedAdd.collectAsState()
+    val showDate by vwModel.showDateAdd.collectAsState()
+    val dateState = vwModel.dateState
+    //val dateState = rememberDatePickerState()
     Surface(
         color = Amber,
         modifier = Modifier
@@ -97,7 +104,7 @@ fun AddPlace(onNavigateToMain: () -> Unit) {
 
             ExposedDropdownMenuBox(
                 expanded = isExpanded,
-                onExpandedChange = { isExpanded = !isExpanded }) {
+                onExpandedChange = { vwModel.updateIsExpanded(!isExpanded) }) {
                 TextField(
                     textStyle = TextStyle.Default.copy(fontFamily = fontJockey),
                     value = selText,
@@ -119,31 +126,31 @@ fun AddPlace(onNavigateToMain: () -> Unit) {
                 )
                 ExposedDropdownMenu(
                     expanded = isExpanded,
-                    onDismissRequest = { isExpanded = false }) {
+                    onDismissRequest = { vwModel.updateIsExpanded(false) }) {
                     DropdownMenuItem(
                         text = { Text(text = "Idea", fontFamily = fontJockey) },
                         onClick = {
-                            selText = TextFieldValue("Idea")
-                            isExpanded = false
+                            vwModel.updateSelText("Idea")
+                            vwModel.updateIsExpanded(false)
                         })
                     DropdownMenuItem(
                         text = { Text(text = "Roda", fontFamily = fontJockey) },
                         onClick = {
-                            selText = TextFieldValue("Roda")
-                            isExpanded = false
+                            vwModel.updateSelText("Roda")
+                            vwModel.updateIsExpanded(false)
                         })
                     DropdownMenuItem(
                         text = { Text(text = "Lidl", fontFamily = fontJockey) },
                         onClick = {
-                            selText = TextFieldValue("Lidl")
-                            isExpanded = false
+                            vwModel.updateSelText("Lidl")
+                            vwModel.updateIsExpanded(false)
                         })
                 }
 
             }
             TextField(
                 value = opis,
-                onValueChange = { newText -> opis = newText },
+                onValueChange = { newText -> vwModel.updateOpisTp(newText) },
                 singleLine = false,
                 placeholder = {
                     Text(
@@ -172,14 +179,14 @@ fun AddPlace(onNavigateToMain: () -> Unit) {
                     colors = DatePickerDefaults.colors(
                         containerColor = Color.White,
                     ),
-                    onDismissRequest = { showDate = true },
+                    onDismissRequest = { vwModel.updateShowDate(true) },
                     confirmButton = {
                         Button(
                             colors = ButtonDefaults.buttonColors(
                                 contentColor = Color.White,
                                 containerColor = Amber
                             ),
-                            onClick = { showDate = false }
+                            onClick = { vwModel.updateShowDate(false) }
                         ) {
                             Text(text = "Prihvati")
                         }
@@ -190,14 +197,14 @@ fun AddPlace(onNavigateToMain: () -> Unit) {
                                 contentColor = Color.White,
                                 containerColor = Amber
                             ),
-                            onClick = { showDate = false }
+                            onClick = { vwModel.updateShowDate(false) }
                         ) {
                             Text(text = "Odustani")
                         }
                     },
                 ) {
                     DatePicker(
-                        state = dateState, showModeToggle = true,
+                        state = dateState.value, showModeToggle = true,
                         colors = DatePickerDefaults.colors(
                             containerColor = Color.White,
                             titleContentColor = Amber,
@@ -246,7 +253,7 @@ fun AddPlace(onNavigateToMain: () -> Unit) {
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Button(
-                    onClick = { showDate = true },
+                    onClick = { vwModel.updateShowDate(true) },
                     colors = ButtonDefaults.buttonColors(
                         contentColor = Amber,
                         containerColor = Color.White
@@ -259,7 +266,7 @@ fun AddPlace(onNavigateToMain: () -> Unit) {
                     )
                 }
                 Text(
-                    text = "31.05.2001.",
+                    text = vwModel.getFormattedDate(),
                     color = Color.White,
                     fontFamily = fontJockey,
                     fontSize = 20.sp,
