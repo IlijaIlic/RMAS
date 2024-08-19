@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.text.SimpleDateFormat
 import java.util.Locale
-
+//GOTOV OSIM DATEPICKER (moze da se bira datum iz proslosti)
 class AddPlaceVM : ViewModel() {
 
     private val _opisAdd = MutableStateFlow("")

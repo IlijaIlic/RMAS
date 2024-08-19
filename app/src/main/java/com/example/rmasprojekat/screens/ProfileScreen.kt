@@ -54,7 +54,17 @@ import com.example.rmasprojekat.ui.theme.fontJockey
 fun ProfileScreen(onNavigateToMain: () -> Unit) {
 
     var checked by remember { mutableStateOf(true) }
+    //ime
+    //prezime
+    //email
+    //brTelefona
+    //brojbodova
+    //servisChecked
 
+
+    //
+    //Screen za sacuvane akcije, istoriju postavljenih i promenu podataka
+    //
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = Color.White

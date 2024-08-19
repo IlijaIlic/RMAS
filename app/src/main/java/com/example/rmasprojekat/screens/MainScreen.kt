@@ -1,5 +1,8 @@
 package com.example.rmasprojekat.screens
 
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.ScrollableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,8 +12,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
@@ -41,6 +46,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -56,6 +62,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.rmasprojekat.ui.MainVM
 import com.example.rmasprojekat.ui.theme.Amber
 import com.example.rmasprojekat.ui.theme.AmberLight
 import com.example.rmasprojekat.ui.theme.fontJockey
@@ -66,6 +73,15 @@ import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapType
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.rememberCameraPositionState
+import compose.icons.FeatherIcons
+import compose.icons.feathericons.ArrowLeft
+import compose.icons.feathericons.Check
+import compose.icons.feathericons.Disc
+import compose.icons.feathericons.MapPin
+import compose.icons.feathericons.Plus
+import compose.icons.feathericons.Search
+import compose.icons.feathericons.User
+import compose.icons.feathericons.X
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -74,24 +90,25 @@ fun MainScreen(
     onNavigateToAddPlace: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToUserList: () -> Unit,
-    onNavigateToViewSale: () -> Unit
+    onNavigateToViewSale: () -> Unit,
+    vwModel: MainVM = viewModel()
 ) {
 
-    var sliderPosition by remember { mutableFloatStateOf(0f) }
-    var openDialog by remember { mutableStateOf(false) }
-    var showDate by remember { mutableStateOf(false) }
-    var isExpanded by remember { mutableStateOf(false) }
-    var selText by remember { mutableStateOf(TextFieldValue("Izaberi Lokaciju")) }
-    var isExpandedProd by remember { mutableStateOf(false) }
-    var selTextProd by remember { mutableStateOf(TextFieldValue("Izaberi Prodavnicu")) }
-    val dateState = rememberDatePickerState()
+    val sliderPosition by vwModel.slidePosMain.collectAsState()
+    val openDialog by vwModel.openDialogMain.collectAsState()
+    val showDate by vwModel.showDateMain.collectAsState()
+    val isExpanded by vwModel.isExpandedMain.collectAsState()
+    val selText by vwModel.selTextMain.collectAsState()
+    val isExpandedProd by vwModel.isExpandedProdMain.collectAsState()
+    val selTextProd by vwModel.selTextProdMain.collectAsState()
+    val dateState = vwModel.dateState
 
 
     val nis = LatLng(43.321445, 21.896104)
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(nis, 18f)
     }
-    var uiSettings by remember {
+    val uiSettings by remember {
         mutableStateOf(
             MapUiSettings(
                 zoomControlsEnabled = false,
@@ -100,7 +117,7 @@ fun MainScreen(
                 )
         )
     }
-    var properties by remember {
+    val properties by remember {
         mutableStateOf(MapProperties(mapType = MapType.NORMAL))
     }
 
@@ -132,7 +149,7 @@ fun MainScreen(
                         .padding(10.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.AccountCircle,
+                        imageVector = FeatherIcons.User,
                         contentDescription = "Profile"
                     )
                 }
@@ -144,7 +161,7 @@ fun MainScreen(
                     modifier = Modifier
                         .padding(10.dp)
                 ) {
-                    Icon(imageVector = Icons.Filled.Search, contentDescription = "Profile")
+                    Icon(imageVector = FeatherIcons.Search, contentDescription = "Profile")
                 }
             }
             Row(
@@ -158,9 +175,9 @@ fun MainScreen(
                     shape = CircleShape,
                     modifier = Modifier
                         .padding(10.dp),
-                    onClick = { openDialog = true },
+                    onClick = { vwModel.updateOpenDialog(true) },
                 ) {
-                    Icon(imageVector = Icons.Filled.List, contentDescription = "List")
+                    Icon(imageVector = FeatherIcons.Disc, contentDescription = "List")
                 }
                 Column(
                     horizontalAlignment = Alignment.End,
@@ -175,7 +192,7 @@ fun MainScreen(
                             .padding(10.dp),
                         onClick = { onNavigateToAddPlace() },
                     ) {
-                        Icon(imageVector = Icons.Filled.Add, contentDescription = "Add place")
+                        Icon(imageVector = FeatherIcons.Plus, contentDescription = "Add place")
                     }
                     FloatingActionButton(
                         containerColor = Amber,
@@ -186,7 +203,7 @@ fun MainScreen(
                         onClick = { onNavigateToViewSale() },
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.LocationOn,
+                            imageVector = FeatherIcons.MapPin,
                             contentDescription = "ViewPlace"
                         )
                     }
@@ -197,7 +214,8 @@ fun MainScreen(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(600.dp)
-                                        .padding(16.dp),
+                                        .padding(16.dp)
+                                        .verticalScroll(rememberScrollState()),
                                     shape = RoundedCornerShape(16.dp),
                                     colors = CardDefaults.cardColors(
                                         containerColor = Color.White
@@ -209,14 +227,14 @@ fun MainScreen(
                                     ) {
                                         FloatingActionButton(
                                             shape = CircleShape,
-                                            onClick = { openDialog = false },
+                                            onClick = { vwModel.updateOpenDialog(false) },
                                             containerColor = Color.White,
                                             modifier = Modifier
                                                 .padding(10.dp)
                                                 .shadow(4.dp, CircleShape)
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Filled.ArrowBack,
+                                                imageVector = FeatherIcons.ArrowLeft,
                                                 contentDescription = "Back",
                                                 tint = Amber
                                             )
@@ -235,7 +253,7 @@ fun MainScreen(
                                                 ExposedDropdownMenuBox(
                                                     expanded = isExpanded,
                                                     onExpandedChange = {
-                                                        isExpanded = !isExpanded
+                                                        vwModel.updateIsExpanded(!isExpanded)
                                                     }) {
                                                     TextField(
                                                         textStyle = TextStyle.Default.copy(
@@ -268,7 +286,7 @@ fun MainScreen(
                                                     ExposedDropdownMenu(
                                                         expanded = isExpanded,
                                                         onDismissRequest = {
-                                                            isExpanded = false
+                                                            vwModel.updateIsExpanded(false)
                                                         }) {
                                                         DropdownMenuItem(
                                                             text = {
@@ -278,8 +296,8 @@ fun MainScreen(
                                                                 )
                                                             },
                                                             onClick = {
-                                                                selText = TextFieldValue("Nis")
-                                                                isExpanded = false
+                                                                vwModel.updateSelTextMain("Nis")
+                                                                vwModel.updateIsExpanded(false)
                                                             })
                                                         DropdownMenuItem(
                                                             text = {
@@ -289,9 +307,8 @@ fun MainScreen(
                                                                 )
                                                             },
                                                             onClick = {
-                                                                selText =
-                                                                    TextFieldValue("Beograd")
-                                                                isExpanded = false
+                                                                vwModel.updateSelTextMain("Beograd")
+                                                                vwModel.updateIsExpanded(false)
                                                             })
                                                         DropdownMenuItem(
                                                             text = {
@@ -301,9 +318,8 @@ fun MainScreen(
                                                                 )
                                                             },
                                                             onClick = {
-                                                                selText =
-                                                                    TextFieldValue("Novi Sad")
-                                                                isExpanded = false
+                                                                vwModel.updateSelTextMain("Novi Sad")
+                                                                vwModel.updateIsExpanded(false)
                                                             })
                                                     }
 
@@ -311,7 +327,7 @@ fun MainScreen(
                                                 ExposedDropdownMenuBox(
                                                     expanded = isExpandedProd,
                                                     onExpandedChange = {
-                                                        isExpandedProd = !isExpandedProd
+                                                        vwModel.updateIsExpandedProd(!isExpandedProd)
                                                     }) {
                                                     TextField(
                                                         textStyle = TextStyle.Default.copy(
@@ -344,7 +360,7 @@ fun MainScreen(
                                                     ExposedDropdownMenu(
                                                         expanded = isExpandedProd,
                                                         onDismissRequest = {
-                                                            isExpandedProd = false
+                                                            vwModel.updateIsExpandedProd(false)
                                                         }) {
                                                         DropdownMenuItem(
                                                             text = {
@@ -354,9 +370,8 @@ fun MainScreen(
                                                                 )
                                                             },
                                                             onClick = {
-                                                                selTextProd =
-                                                                    TextFieldValue("Roda")
-                                                                isExpandedProd = false
+                                                                vwModel.updateSelTextProdMain("Roda")
+                                                                vwModel.updateIsExpandedProd(false)
                                                             })
                                                         DropdownMenuItem(
                                                             text = {
@@ -366,9 +381,8 @@ fun MainScreen(
                                                                 )
                                                             },
                                                             onClick = {
-                                                                selTextProd =
-                                                                    TextFieldValue("Idea")
-                                                                isExpandedProd = false
+                                                                vwModel.updateSelTextProdMain("Idea")
+                                                                vwModel.updateIsExpandedProd(false)
                                                             })
                                                         DropdownMenuItem(
                                                             text = {
@@ -378,15 +392,14 @@ fun MainScreen(
                                                                 )
                                                             },
                                                             onClick = {
-                                                                selTextProd =
-                                                                    TextFieldValue("Lidl")
-                                                                isExpandedProd = false
+                                                                vwModel.updateSelTextProdMain("Lidl")
+                                                                vwModel.updateIsExpandedProd(false)
                                                             })
                                                     }
 
                                                 }
                                                 FloatingActionButton(
-                                                    onClick = { showDate = true },
+                                                    onClick = { vwModel.updateShowDate(true) },
                                                     shape = RoundedCornerShape(12.dp),
                                                     modifier = Modifier
                                                         .padding(10.dp)
@@ -398,7 +411,7 @@ fun MainScreen(
                                                     containerColor = Color.White
                                                 ) {
                                                     Text(
-                                                        text = "Izaberite datum isteka akcije",
+                                                        text = vwModel.getFormattedDate(),
                                                         textAlign = TextAlign.Start,
                                                         fontFamily = fontJockey,
                                                         color = Color.Black
@@ -410,7 +423,7 @@ fun MainScreen(
                                                 )
                                                 Slider(
                                                     value = sliderPosition,
-                                                    onValueChange = { sliderPosition = it },
+                                                    onValueChange = { vwModel.updateSlidePos(it) },
                                                     colors = SliderDefaults.colors(
                                                         thumbColor = Amber,
                                                         activeTrackColor = Amber,
@@ -425,14 +438,17 @@ fun MainScreen(
                                                     colors = DatePickerDefaults.colors(
                                                         containerColor = Color.White,
                                                     ),
-                                                    onDismissRequest = { showDate = true },
+                                                    modifier = Modifier.verticalScroll(
+                                                        rememberScrollState()
+                                                    ),
+                                                    onDismissRequest = { vwModel.updateShowDate(true) },
                                                     confirmButton = {
                                                         Button(
                                                             colors = ButtonDefaults.buttonColors(
                                                                 contentColor = Color.White,
                                                                 containerColor = Amber
                                                             ),
-                                                            onClick = { showDate = false }
+                                                            onClick = { vwModel.updateShowDate(false) }
                                                         ) {
                                                             Text(text = "Prihvati")
                                                         }
@@ -443,14 +459,14 @@ fun MainScreen(
                                                                 contentColor = Color.White,
                                                                 containerColor = Amber
                                                             ),
-                                                            onClick = { showDate = false }
+                                                            onClick = { vwModel.updateShowDate(false) }
                                                         ) {
                                                             Text(text = "Odustani")
                                                         }
                                                     },
                                                 ) {
                                                     DatePicker(
-                                                        state = dateState,
+                                                        state = dateState.value,
                                                         showModeToggle = true,
                                                         colors = DatePickerDefaults.colors(
                                                             containerColor = Color.White,
@@ -481,26 +497,26 @@ fun MainScreen(
                                             horizontalArrangement = Arrangement.SpaceBetween,
                                         ) {
                                             Button(
-                                                onClick = { openDialog = false },
+                                                onClick = { vwModel.updateOpenDialog(false) },
                                                 colors = ButtonDefaults.buttonColors(
                                                     containerColor = Amber
                                                 ),
                                                 modifier = Modifier.padding(10.dp)
                                             ) {
                                                 Icon(
-                                                    imageVector = Icons.Filled.Close,
+                                                    imageVector = FeatherIcons.X,
                                                     contentDescription = "Close"
                                                 )
                                             }
                                             Button(
-                                                onClick = { openDialog = false },
+                                                onClick = { vwModel.updateOpenDialog(false) },
                                                 colors = ButtonDefaults.buttonColors(
                                                     containerColor = Amber
                                                 ),
                                                 modifier = Modifier.padding(10.dp)
                                             ) {
                                                 Icon(
-                                                    imageVector = Icons.Filled.Done,
+                                                    imageVector = FeatherIcons.Check,
                                                     contentDescription = "Done"
                                                 )
                                             }

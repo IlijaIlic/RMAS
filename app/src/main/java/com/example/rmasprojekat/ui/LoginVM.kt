@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
+//GOTOVO
 class LoginVM() : ViewModel() {
 
     private val _emailLogin = MutableStateFlow("")
