@@ -18,6 +18,9 @@ import com.example.rmasprojekat.ui.theme.fontJockey
 
 @Composable
 fun Landing(onNavigateToRegister: () -> Unit, onNavigateToLogin: () -> Unit) {
+
+    // NAPRAVI DA AKO JE NEKO VEC ULOGOVAN DA PRESKOCI DO MAIN SCREENA
+    
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,

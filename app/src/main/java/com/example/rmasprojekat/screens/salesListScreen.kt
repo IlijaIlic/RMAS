@@ -64,6 +64,10 @@ import com.example.rmasprojekat.ui.theme.AmberLight
 import com.example.rmasprojekat.ui.theme.fontJockey
 import compose.icons.FeatherIcons
 import compose.icons.feathericons.ArrowLeft
+import compose.icons.feathericons.Check
+import compose.icons.feathericons.Search
+import compose.icons.feathericons.Tool
+import compose.icons.feathericons.X
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -151,7 +155,7 @@ fun salesListScreen(
                     ),
                     trailingIcon = {
                         Icon(
-                            imageVector = Icons.Filled.Search,
+                            imageVector = FeatherIcons.Search,
                             contentDescription = "Search"
                         )
                     },
@@ -176,7 +180,7 @@ fun salesListScreen(
                         )
                         Icon(
                             tint = Amber,
-                            imageVector = Icons.Filled.Build,
+                            imageVector = FeatherIcons.Tool,
                             contentDescription = "Filter"
                         )
                     }
@@ -465,7 +469,7 @@ fun salesListScreen(
                                             modifier = Modifier.padding(10.dp)
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Filled.Close,
+                                                imageVector = FeatherIcons.X,
                                                 contentDescription = "Close"
                                             )
                                         }
@@ -477,7 +481,7 @@ fun salesListScreen(
                                             modifier = Modifier.padding(10.dp)
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Filled.Done,
+                                                imageVector = FeatherIcons.Check,
                                                 contentDescription = "Done"
                                             )
                                         }

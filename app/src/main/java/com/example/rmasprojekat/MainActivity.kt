@@ -13,6 +13,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.rmasprojekat.ds.UserDS
+import com.example.rmasprojekat.repositories.UserRepository
 import com.example.rmasprojekat.screens.AddPlace
 import com.example.rmasprojekat.screens.Landing
 import com.example.rmasprojekat.screens.Login
@@ -23,10 +25,12 @@ import com.example.rmasprojekat.screens.UserListScreen
 import com.example.rmasprojekat.screens.ViewSaleScreen
 import com.example.rmasprojekat.screens.salesListScreen
 import com.example.rmasprojekat.ui.theme.RMASProjekatTheme
+import com.google.firebase.FirebaseApp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        FirebaseApp.initializeApp(this)
         setContent {
             Navigation()
 
@@ -44,12 +48,14 @@ fun Navigation() {
                 onNavigateToRegister = { navController.navigate("register") })
         }
         composable("login") {
-            Login(onNavigateToRegister = {
-                navController.popBackStack("landing", false)
-                navController.navigate("register")
-            },
+            Login(
+                onNavigateToRegister = {
+                    navController.popBackStack("landing", false)
+                    navController.navigate("register")
+                },
                 onNavigateToLanding = { navController.popBackStack("landing", false) },
-                onNavigateToMain = { navController.navigate("main") }
+                onNavigateToMain = { navController.navigate("main") },
+                userRep = UserRepository(userds = UserDS())
             )
         }
         composable("register") {
@@ -74,7 +80,13 @@ fun Navigation() {
             AddPlace(onNavigateToMain = { navController.popBackStack("main", false) })
         }
         composable("profile") {
-            ProfileScreen(onNavigateToMain = { navController.popBackStack("main", false) })
+            ProfileScreen(
+                onNavigateToMain = {
+                    navController.popBackStack("main", false)
+                },
+                userRep = UserRepository(userds = UserDS()),
+                onNavigateWhenLogout = { navController.popBackStack("landing", false) }
+            )
         }
         composable("listOfUsers") {
             UserListScreen(

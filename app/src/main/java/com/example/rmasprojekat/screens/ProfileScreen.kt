@@ -49,7 +49,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.rmasprojekat.R
+import com.example.rmasprojekat.repositories.UserRepository
+import com.example.rmasprojekat.ui.LoginVM
+import com.example.rmasprojekat.ui.LoginVMFactory
 import com.example.rmasprojekat.ui.ProfileVM
+import com.example.rmasprojekat.ui.ProfileVMFactory
 import com.example.rmasprojekat.ui.theme.Amber
 import com.example.rmasprojekat.ui.theme.AmberLight
 import com.example.rmasprojekat.ui.theme.fontJockey
@@ -60,14 +64,19 @@ import compose.icons.feathericons.LogOut
 @Composable
 fun ProfileScreen(
     onNavigateToMain: () -> Unit,
-    vwModel: ProfileVM = viewModel()
+    onNavigateWhenLogout: () -> Unit,
+    userRep: UserRepository
 ) {
+
+    val vwModel: ProfileVM = viewModel(factory = ProfileVMFactory(userRep))
     val ime by vwModel.imeProf.collectAsState()
     val prezime by vwModel.prezimeProf.collectAsState()
     val email by vwModel.emailProf.collectAsState()
     val brTelefona by vwModel.brojTelefonaProf.collectAsState()
     val brojBodova by vwModel.brojBodovaProf.collectAsState()
     val checked by vwModel.serviceCheckedProf.collectAsState()
+
+    vwModel.getUserInfo()
 
     //
     //Screen za sacuvane akcije, istoriju postavljenih i promenu podataka
@@ -325,7 +334,10 @@ fun ProfileScreen(
                         )
                     }
                     Button(
-                        onClick = { /*TODO*/ },
+                        onClick = {
+                            userRep.logout()
+                            onNavigateWhenLogout()
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Amber
                         ),

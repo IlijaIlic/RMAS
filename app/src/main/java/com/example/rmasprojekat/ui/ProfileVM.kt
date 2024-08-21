@@ -1,13 +1,18 @@
 package com.example.rmasprojekat.ui
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import com.example.rmasprojekat.repositories.UserRepository
+import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 
 //GOTOVO
-class ProfileVM : ViewModel() {
+class ProfileVM(private val userRep: UserRepository?) : ViewModel() {
 
 
     private val _imeProf = MutableStateFlow("Ilija")
@@ -47,4 +52,23 @@ class ProfileVM : ViewModel() {
         _serviceCheckedProf.value = bl
     }
 
+    fun getUserInfo() {
+        viewModelScope.launch {
+            val user: FirebaseUser? = userRep?.getUser()
+            if (user != null) {
+                _emailProf.value = user.email.toString()
+            }
+        }
+    }
+
+
+}
+
+class ProfileVMFactory(private val userRep: UserRepository) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(ProfileVM::class.java)) {
+            return ProfileVM(userRep) as T
+        }
+        throw IllegalArgumentException("Unknown viewModel class")
+    }
 }

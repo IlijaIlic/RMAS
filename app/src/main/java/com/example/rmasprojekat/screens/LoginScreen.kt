@@ -44,7 +44,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.rmasprojekat.ds.UserDS
+import com.example.rmasprojekat.repositories.UserRepository
 import com.example.rmasprojekat.ui.LoginVM
+import com.example.rmasprojekat.ui.LoginVMFactory
 import com.example.rmasprojekat.ui.theme.Amber
 import com.example.rmasprojekat.ui.theme.fontJockey
 import compose.icons.FeatherIcons
@@ -56,13 +59,15 @@ fun Login(
     onNavigateToRegister: () -> Unit,
     onNavigateToLanding: () -> Unit,
     onNavigateToMain: () -> Unit,
-    vwModel: LoginVM = viewModel()
+    userRep: UserRepository
 ) {
 
-
+    val vwModel: LoginVM = viewModel(factory = LoginVMFactory(userRep))
     val email by vwModel.emailLogin.collectAsState()
     val password by vwModel.passwordLogin.collectAsState()
     val showPassword by vwModel.showPasswordLogin.collectAsState()
+
+
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -146,11 +151,16 @@ fun Login(
                 .padding(end = 60.dp)
         ) {
             Button(
-                onClick = { onNavigateToMain() }, colors = ButtonDefaults.buttonColors(
+                onClick = {
+                    vwModel.createUser()
+                    onNavigateToMain()
+                },
+                colors = ButtonDefaults.buttonColors(
                     containerColor = Amber
-                ), shape = RoundedCornerShape(20)
+                ),
+                shape = RoundedCornerShape(20)
             ) {
-                Text("Uloguj se", fontFamily = fontJockey, style = TextStyle(fontSize = 20.sp))
+                Text("Prijavi se", fontFamily = fontJockey, style = TextStyle(fontSize = 20.sp))
             }
             Row {
                 Text(
