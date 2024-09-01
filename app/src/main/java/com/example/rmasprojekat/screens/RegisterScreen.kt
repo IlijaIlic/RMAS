@@ -1,6 +1,13 @@
 package com.example.rmasprojekat.screens
 
 import android.R
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.provider.MediaStore
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable
@@ -30,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -49,30 +58,73 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.rmasprojekat.repositories.UserRepository
 import com.example.rmasprojekat.ui.LoginVM
+import com.example.rmasprojekat.ui.ProfileVM
+import com.example.rmasprojekat.ui.ProfileVMFactory
 import com.example.rmasprojekat.ui.RegisterVM
+import com.example.rmasprojekat.ui.RegisterVMFactory
 import com.example.rmasprojekat.ui.theme.Amber
+import com.example.rmasprojekat.ui.theme.AmberLight
 import com.example.rmasprojekat.ui.theme.fontJockey
 import compose.icons.FeatherIcons
+import compose.icons.feathericons.Camera
 import compose.icons.feathericons.Eye
 import compose.icons.feathericons.EyeOff
+import compose.icons.feathericons.Image
 
 @Composable
 fun Register(
     onNavigateToLogin: () -> Unit,
     onNavigateToLanding: () -> Unit,
     onNavigateToMain: () -> Unit,
-    vwModel: RegisterVM = viewModel()
-
+    userRep: UserRepository
 ) {
 
+    val vwModel: RegisterVM = viewModel(factory = RegisterVMFactory(userRep))
     val email by vwModel.emailRegister.collectAsState()
     val password by vwModel.passwordRegister.collectAsState()
     val ime by vwModel.imeRegister.collectAsState()
     val prezime by vwModel.prezimeRegister.collectAsState()
     val phoneNumber by vwModel.phoneNumberRegister.collectAsState()
     val showPassword by vwModel.showPasswordRegister.collectAsState()
-    var passwordVisible by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val cameraEvent by vwModel.cameraEvent.collectAsState()
+    val okImage by vwModel.okImage.collectAsState()
+    val okToRegister by vwModel.okToRegister.collectAsState()
+    val firebaseOk by vwModel.firebaseOk.collectAsState()
+    val regAttempted by vwModel.loginAttempted.collectAsState()
+
+    LaunchedEffect(regAttempted) {
+        if (regAttempted) {
+            if (firebaseOk) {
+                onNavigateToMain()
+                vwModel.updateOkImage(false)
+            } else {
+                Toast.makeText(context, "Greska u registrovanju", Toast.LENGTH_SHORT).show()
+            }
+            vwModel.resetLoginAttempt()
+        }
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()
+    ) { bitmap ->
+        if (bitmap != null) {
+            val file = vwModel.bitmapToFile(context, bitmap)
+            if (file != null) {
+                vwModel.updateFile(file)
+            }
+        }
+    }
+
+    val buttonColor = if (okImage) AmberLight else Color.White
+    val iconTint = if (okImage) Color.White else Amber
+
+    if (cameraEvent) {
+        launcher.launch(null)
+        vwModel.onCameraEventHandled()
+    }
 
     LazyColumn(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -215,23 +267,50 @@ fun Register(
                     fontWeight = FontWeight.Normal,
                     fontFamily = fontJockey
                 )
-                Button(
-                    modifier = Modifier
-                        .shadow(
-                            3.dp, RoundedCornerShape(12.dp)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Button(
+                        shape = RoundedCornerShape(20),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 4.dp,
+                            pressedElevation = 10.dp,
+                            disabledElevation = 0.dp,
+                            hoveredElevation = 4.dp,
+                            focusedElevation = 4.dp,
                         ),
-                    onClick = { /*TODO*/ },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White
+                        onClick = { vwModel.onOpenCamera() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = buttonColor
+                        )
+                    ) {
+                        Icon(
+                            tint = iconTint,
+                            imageVector = FeatherIcons.Camera,
+                            contentDescription = "Fotografija",
+                        )
+                    }
+                    Button(
+                        shape = RoundedCornerShape(20),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 4.dp,
+                            pressedElevation = 10.dp,
+                            disabledElevation = 0.dp,
+                            hoveredElevation = 4.dp,
+                            focusedElevation = 4.dp,
+                        ),
+                        onClick = { vwModel.onOpenCamera() },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = buttonColor
 
-                    ), shape = RoundedCornerShape(20)
-                ) {
-                    Icon(
-                        tint = Amber,
-                        imageVector = Icons.Rounded.Face,
-                        contentDescription = "Fotografija",
-                    )
+                        )
+                    ) {
+                        Icon(
+                            tint = iconTint,
+                            imageVector = FeatherIcons.Image,
+                            contentDescription = "Fotografija",
+                        )
+                    }
                 }
+
             }
         }
         item {
@@ -242,9 +321,14 @@ fun Register(
                     .padding(top = 10.dp, end = 60.dp)
             ) {
                 Button(
-                    onClick = { onNavigateToMain() }, colors = ButtonDefaults.buttonColors(
+                    enabled = okToRegister,
+                    onClick = {
+                        vwModel.createUser()
+                    },
+                    colors = ButtonDefaults.buttonColors(
                         containerColor = Amber
-                    ), shape = RoundedCornerShape(20)
+                    ),
+                    shape = RoundedCornerShape(20)
                 ) {
                     Text(
                         "Registruj se",
@@ -290,3 +374,14 @@ fun Register(
         }
     }
 }
+
+//fun launchCamera(context: Context) {
+//    val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+//    if (intent.resolveActivity(context.packageManager) != null) {
+//        // Optionally create a file to save the image
+//        // val photoFile = File(...)
+//        // val photoURI = FileProvider.getUriForFile(context, "your.package.fileprovider", photoFile)
+//        // intent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
+//        (context as? Activity)?.startActivityForResult(intent, REQUEST_IMAGE_CAPTURE)
+//    }
+//}

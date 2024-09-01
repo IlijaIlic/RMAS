@@ -1,5 +1,9 @@
 package com.example.rmasprojekat.screens
 
+import com.example.rmasprojekat.R
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.ScrollableState
 import androidx.compose.foundation.gestures.scrollable
@@ -46,6 +50,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -56,32 +61,57 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
+import android.Manifest
+import android.util.Log
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import com.example.rmasprojekat.repositories.OglasRepository
+import com.example.rmasprojekat.ui.AddPlaceVM
+import com.example.rmasprojekat.ui.AddPlaceVMFactory
 import com.example.rmasprojekat.ui.MainVM
+import com.example.rmasprojekat.ui.MainVMFactory
+import com.example.rmasprojekat.ui.ViewSaleVM
 import com.example.rmasprojekat.ui.theme.Amber
 import com.example.rmasprojekat.ui.theme.AmberLight
 import com.example.rmasprojekat.ui.theme.fontJockey
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.CameraPositionState
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapType
 import com.google.maps.android.compose.MapUiSettings
+import com.google.maps.android.compose.Marker
+import com.google.maps.android.compose.MarkerComposable
+import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.maps.android.compose.rememberMarkerState
 import compose.icons.FeatherIcons
+import compose.icons.TablerIcons
 import compose.icons.feathericons.ArrowLeft
 import compose.icons.feathericons.Check
+import compose.icons.feathericons.Crosshair
 import compose.icons.feathericons.Disc
+import compose.icons.feathericons.Flag
 import compose.icons.feathericons.MapPin
 import compose.icons.feathericons.Plus
 import compose.icons.feathericons.Search
 import compose.icons.feathericons.User
 import compose.icons.feathericons.X
+import compose.icons.tablericons.MapPin
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -91,8 +121,11 @@ fun MainScreen(
     onNavigateToProfile: () -> Unit,
     onNavigateToUserList: () -> Unit,
     onNavigateToViewSale: () -> Unit,
-    vwModel: MainVM = viewModel()
+    oglasRepository: OglasRepository,
+    viewSaleVM: ViewSaleVM
 ) {
+
+    val vwModel: MainVM = viewModel(factory = MainVMFactory(oglasRepository))
 
     val sliderPosition by vwModel.slidePosMain.collectAsState()
     val openDialog by vwModel.openDialogMain.collectAsState()
@@ -102,12 +135,51 @@ fun MainScreen(
     val isExpandedProd by vwModel.isExpandedProdMain.collectAsState()
     val selTextProd by vwModel.selTextProdMain.collectAsState()
     val dateState = vwModel.dateState
+    val context = LocalContext.current
+    val usrLocation by vwModel.userLocation.collectAsState()
+    val cameraPositionState by vwModel.cameraPositionState.collectAsState()
+    val sales by vwModel.sales.collectAsState()
 
+
+
+    LaunchedEffect(Unit) {
+        //PRIBAVLJIVANJE svih MARKERA
+        vwModel.getAllSales()
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            vwModel.stopLocationUpdates(context)
+        }
+    }
+
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            vwModel.getCurrentLocation(context)
+        } else {
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        when {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                vwModel.getCurrentLocation(context)
+            }
+
+            else -> {
+                permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            }
+        }
+    }
 
     val nis = LatLng(43.321445, 21.896104)
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(nis, 18f)
-    }
+
     val uiSettings by remember {
         mutableStateOf(
             MapUiSettings(
@@ -117,6 +189,7 @@ fun MainScreen(
                 )
         )
     }
+
     val properties by remember {
         mutableStateOf(MapProperties(mapType = MapType.NORMAL))
     }
@@ -128,8 +201,47 @@ fun MainScreen(
             properties = properties,
             uiSettings = uiSettings
         ) {
-
-
+            usrLocation?.let {
+                MarkerComposable(
+                    state = MarkerState(position = it),
+                    title = "Vasa lokacija",
+                ) {
+                    Box(
+                        modifier = Modifier.size(60.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.usrloc),
+                            contentDescription = "Korisnik",
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
+            }
+            sales?.forEach { sale ->
+                Marker(
+                    state = MarkerState(position = sale.lokacija ?: nis),
+                    title = sale.opis,
+                    onInfoWindowClick = {
+                        viewSaleVM.updateOpisSale(sale.opis)
+                        viewSaleVM.updateProdavnSale(sale.prod)
+                        viewSaleVM.updateAutor(sale.autor)
+                        viewSaleVM.updateSlikaURL(sale.slikaURL)
+                        viewSaleVM.updateDatumISteka(sale.datumIsteka)
+                        onNavigateToViewSale()
+                    }
+                )
+                //{
+                //      Icon(imageVector = FeatherIcons.MapPin, contentDescription = "Sale")
+//                    Image(
+//                        painter = painterResource(id = R.drawable.mapmarker),
+//                        contentDescription = "Lokacija",
+//                        Modifier
+//                            .size(60.dp)
+//                            .background(Amber),
+//                    )
+                //}
+            }
         }
         Column(
             modifier = Modifier
@@ -190,9 +302,27 @@ fun MainScreen(
                         shape = CircleShape,
                         modifier = Modifier
                             .padding(10.dp),
-                        onClick = { onNavigateToAddPlace() },
+                        onClick = {
+                            try {
+                                vwModel.updateCameraPosition(
+                                    CameraPositionState(
+                                        CameraPosition(
+                                            usrLocation!!,
+                                            18f,
+                                            0f,
+                                            0f
+                                        )
+                                    )
+                                )
+                            } catch (e: Exception) {
+                                Log.w("ERROR", "Cant recenter!")
+                            }
+                        },
                     ) {
-                        Icon(imageVector = FeatherIcons.Plus, contentDescription = "Add place")
+                        Icon(
+                            imageVector = FeatherIcons.Crosshair,
+                            contentDescription = "ViewPlace"
+                        )
                     }
                     FloatingActionButton(
                         containerColor = Amber,
@@ -200,13 +330,13 @@ fun MainScreen(
                         shape = CircleShape,
                         modifier = Modifier
                             .padding(10.dp),
-                        onClick = { onNavigateToViewSale() },
+                        onClick = {
+                            onNavigateToAddPlace()
+                        },
                     ) {
-                        Icon(
-                            imageVector = FeatherIcons.MapPin,
-                            contentDescription = "ViewPlace"
-                        )
+                        Icon(imageVector = FeatherIcons.Plus, contentDescription = "Add place")
                     }
+
                     when {
                         openDialog -> {
                             Dialog(onDismissRequest = { /*TODO*/ }) {

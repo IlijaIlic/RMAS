@@ -13,14 +13,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.rmasprojekat.repositories.UserRepository
+import com.example.rmasprojekat.ui.LoginVM
+import com.example.rmasprojekat.ui.LoginVMFactory
+import com.example.rmasprojekat.ui.ProfileVM
+import com.example.rmasprojekat.ui.ProfileVMFactory
 import com.example.rmasprojekat.ui.theme.Amber
 import com.example.rmasprojekat.ui.theme.fontJockey
 
 @Composable
-fun Landing(onNavigateToRegister: () -> Unit, onNavigateToLogin: () -> Unit) {
-
+fun Landing(
+    onNavigateToRegister: () -> Unit,
+    onNavigateToLogin: () -> Unit,
+    onNavigateToMain: () -> Unit,
+    userRep: UserRepository
+) {
+    val vwModel: ProfileVM = viewModel(factory = ProfileVMFactory(userRep))
     // NAPRAVI DA AKO JE NEKO VEC ULOGOVAN DA PRESKOCI DO MAIN SCREENA
-    
+    if (vwModel.getUserTF() != null) {
+        onNavigateToMain()
+    }
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,

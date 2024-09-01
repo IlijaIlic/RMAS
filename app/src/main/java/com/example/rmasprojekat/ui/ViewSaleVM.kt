@@ -30,4 +30,28 @@ class ViewSaleVM : ViewModel() {
     fun updateLikedSale(nT: String) {
         _autorSale.value = nT
     }
+
+    private val _datumIsteka = MutableStateFlow("")
+    val datumIsteka: StateFlow<String> = _datumIsteka.asStateFlow()
+    fun updateDatumISteka(nT: String) {
+        _datumIsteka.value = nT
+    }
+
+    private val _slikaURL = MutableStateFlow("")
+    val slikaURL: StateFlow<String> = _slikaURL.asStateFlow()
+    fun updateSlikaURL(nT: String) {
+        _slikaURL.value = nT
+    }
+
+    private val _autor = MutableStateFlow("")
+    val autor: StateFlow<String> = _autor.asStateFlow()
+    fun updateAutor(nT: String) {
+        _autor.value = nT
+    }
+
+    private val _bodovi = MutableStateFlow("")
+    val bodovi: StateFlow<String> = _bodovi.asStateFlow()
+    fun updateBodovi(nT: String) {
+        _bodovi.value = nT
+    }
 }

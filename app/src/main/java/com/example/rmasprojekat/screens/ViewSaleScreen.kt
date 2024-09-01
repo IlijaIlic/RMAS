@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.rmasprojekat.R
+import com.example.rmasprojekat.components.LoadImageSale
 import com.example.rmasprojekat.ui.ViewSaleVM
 import com.example.rmasprojekat.ui.theme.Amber
 import com.example.rmasprojekat.ui.theme.fontJockey
@@ -50,13 +51,14 @@ import compose.icons.feathericons.Heart
 @Composable
 fun ViewSaleScreen(
     onNavigateToMain: () -> Unit,
-    vwModel: ViewSaleVM = viewModel()
+    vwModel: ViewSaleVM
 ) {
 
     val prodavnica by vwModel.prodavnicaSale.collectAsState()
     val opis by vwModel.opisSale.collectAsState()
     val liked by vwModel.likedSale.collectAsState()
     val autor by vwModel.autorSale.collectAsState()
+    val imageURL by vwModel.slikaURL.collectAsState()
 
     Surface(
         modifier = Modifier
@@ -98,13 +100,8 @@ fun ViewSaleScreen(
                     .padding(10.dp)
                     .fillMaxWidth()
             ) {
-                Image(
-                    painter = painterResource(R.drawable.noimageborder),
-                    contentDescription = "avatar",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(250.dp)
-                        .clip(RoundedCornerShape(12.dp))
+                LoadImageSale(
+                    url = imageURL
                 )
                 Text(
                     text = opis,

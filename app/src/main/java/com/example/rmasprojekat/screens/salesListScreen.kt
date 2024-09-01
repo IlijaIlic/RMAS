@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -41,6 +43,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,13 +55,18 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.rmasprojekat.repositories.OglasRepository
+import com.example.rmasprojekat.ui.RegisterVM
+import com.example.rmasprojekat.ui.RegisterVMFactory
 import com.example.rmasprojekat.ui.SalesVM
+import com.example.rmasprojekat.ui.SalesVMFactory
 import com.example.rmasprojekat.ui.theme.Amber
 import com.example.rmasprojekat.ui.theme.AmberLight
 import com.example.rmasprojekat.ui.theme.fontJockey
@@ -71,10 +79,12 @@ import compose.icons.feathericons.X
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun salesListScreen(
+fun SalesListScreen(
     onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit,
-    vwModel: SalesVM = viewModel()
+    oglasRepository: OglasRepository
 ) {
+
+    val vwModel: SalesVM = viewModel(factory = SalesVMFactory(oglasRep = oglasRepository))
     val search by vwModel.searchSales.collectAsState()
     val openDialog by vwModel.openDialogMain.collectAsState()
     val showDate by vwModel.showDateMain.collectAsState()
@@ -83,8 +93,11 @@ fun salesListScreen(
     val isExpandedProd by vwModel.isExpandedProdMain.collectAsState()
     val selTextProd by vwModel.selTextProdMain.collectAsState()
     val dateState = vwModel.dateState
+    val sales by vwModel.sales.collectAsState()
 
-
+    LaunchedEffect(Unit) {
+        vwModel.getAllSales()
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -449,7 +462,6 @@ fun salesListScreen(
                                                         disabledDayContentColor = Color.Gray,
                                                     )
                                                 )
-
                                             }
                                         }
                                     }
@@ -487,14 +499,47 @@ fun salesListScreen(
                                         }
                                     }
                                 }
-
-
                             }
                         }
-
                     }
                 }
-
+            }
+        }
+        item {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                sales?.forEachIndexed { index, oglas ->
+                    Button(
+                        onClick = { /*TODO*/ },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Amber
+                        ),
+                        modifier = Modifier
+                            .widthIn(300.dp, 300.dp)
+                            .heightIn(70.dp, 70.dp)
+                            .padding(horizontal = 10.dp, vertical = 6.dp),
+                        elevation = ButtonDefaults.elevatedButtonElevation(
+                            defaultElevation = 3.dp
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceAround,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = oglas.prod,
+                                fontFamily = fontJockey,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(text = "  -  ", fontFamily = fontJockey)
+                            Text(text = oglas.opis.lines()[0], fontFamily = fontJockey)
+                        }
+                    }
+                }
             }
         }
     }

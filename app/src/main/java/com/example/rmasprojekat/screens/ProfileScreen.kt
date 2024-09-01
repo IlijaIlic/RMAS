@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.rmasprojekat.R
+import com.example.rmasprojekat.components.LoadImage
 import com.example.rmasprojekat.repositories.UserRepository
 import com.example.rmasprojekat.ui.LoginVM
 import com.example.rmasprojekat.ui.LoginVMFactory
@@ -67,7 +68,7 @@ fun ProfileScreen(
     onNavigateWhenLogout: () -> Unit,
     userRep: UserRepository
 ) {
-
+//
     val vwModel: ProfileVM = viewModel(factory = ProfileVMFactory(userRep))
     val ime by vwModel.imeProf.collectAsState()
     val prezime by vwModel.prezimeProf.collectAsState()
@@ -75,6 +76,7 @@ fun ProfileScreen(
     val brTelefona by vwModel.brojTelefonaProf.collectAsState()
     val brojBodova by vwModel.brojBodovaProf.collectAsState()
     val checked by vwModel.serviceCheckedProf.collectAsState()
+    val imageUrl by vwModel.imageURL.collectAsState()
 
     vwModel.getUserInfo()
 
@@ -118,16 +120,10 @@ fun ProfileScreen(
 
                     ) {
 
-                    Image(
-                        painter = painterResource(R.drawable.avatar),
-                        contentDescription = "avatar",
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(120.dp)
-                            .clip(CircleShape)
+                    LoadImage(
+                        url = imageUrl,
 
-
-                    )
+                        )
                     Column {
                         Text(
                             text = ime,

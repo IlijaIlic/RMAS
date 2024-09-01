@@ -1,5 +1,6 @@
 package com.example.rmasprojekat.ui
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -10,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import okhttp3.internal.wait
 
 //GOTOVO
 class LoginVM(private val userRep: UserRepository?) : ViewModel() {
@@ -19,12 +21,14 @@ class LoginVM(private val userRep: UserRepository?) : ViewModel() {
     val emailLogin: StateFlow<String> = _emailLogin.asStateFlow()
     fun updateEmailTp(nT: String) {
         _emailLogin.value = nT
+        okToLogin()
     }
 
     private val _passwordLogin = MutableStateFlow("")
     val passwordLogin: StateFlow<String> = _passwordLogin.asStateFlow()
     fun updatePasswordTp(nT: String) {
         _passwordLogin.value = nT
+        okToLogin()
     }
 
     private val _showPasswordLogin = MutableStateFlow(false)
@@ -33,8 +37,44 @@ class LoginVM(private val userRep: UserRepository?) : ViewModel() {
         _showPasswordLogin.value = bl
     }
 
-    fun createUser() {
-        viewModelScope.launch { userRep?.createUser(_emailLogin.value, _passwordLogin.value) }
+
+    private val _firebaseOk = MutableStateFlow<Boolean>(false)
+    val firebaseOk: StateFlow<Boolean> = _firebaseOk.asStateFlow()
+
+
+    private val _loginAttempted = MutableStateFlow(false)
+    val loginAttempted: StateFlow<Boolean> = _loginAttempted.asStateFlow()
+    fun resetLoginAttempt() {
+        _loginAttempted.value = false
+    }
+
+
+    fun login() {
+        viewModelScope.launch {
+            try {
+                val usr = userRep?.login(_emailLogin.value, _passwordLogin.value)
+                _firebaseOk.value = (usr?.uid != null)
+                Log.w("FIREOK", _firebaseOk.value.toString())
+            } catch (e: Exception) {
+                _firebaseOk.value = false
+            } finally {
+                _loginAttempted.value = true
+            }
+        }
+    }
+
+    private val _okToLogin = MutableStateFlow<Boolean>(false)
+    val okToLogin: StateFlow<Boolean> = _okToLogin.asStateFlow()
+    fun okToLogin() {
+        if (_emailLogin.value.isNotEmpty()
+            && _passwordLogin.value.isNotEmpty()
+        ) {
+            _okToLogin.value = true
+
+        } else {
+            _okToLogin.value = false
+        }
+
     }
 
 }

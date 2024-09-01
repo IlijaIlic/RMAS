@@ -3,10 +3,14 @@ package com.example.rmasprojekat.screens
 import com.example.rmasprojekat.R
 import androidx.compose.ui.res.painterResource
 import android.graphics.drawable.Icon
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -49,6 +53,7 @@ import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,12 +66,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.rememberAsyncImagePainter
+import com.example.rmasprojekat.repositories.OglasRepository
 import com.example.rmasprojekat.ui.AddPlaceVM
+import com.example.rmasprojekat.ui.AddPlaceVMFactory
+import com.example.rmasprojekat.ui.ProfileVM
+import com.example.rmasprojekat.ui.ProfileVMFactory
 import com.example.rmasprojekat.ui.theme.Amber
 import com.example.rmasprojekat.ui.theme.AmberLight
 import com.example.rmasprojekat.ui.theme.fontJockey
@@ -75,15 +86,57 @@ import com.example.rmasprojekat.ui.theme.fontJockey
 @Composable
 fun AddPlace(
     onNavigateToMain: () -> Unit,
-    vwModel: AddPlaceVM = viewModel()
+    oglasiRep: OglasRepository
 ) {
-
+    val vwModel: AddPlaceVM = viewModel(factory = AddPlaceVMFactory(oglasiRep))
     val opis by vwModel.opisAdd.collectAsState()
     val selText by vwModel.selTextAdd.collectAsState()
     val isExpanded by vwModel.isExpandedAdd.collectAsState()
     val showDate by vwModel.showDateAdd.collectAsState()
     val dateState = vwModel.dateState
-    //val dateState = rememberDatePickerState()
+    val cameraEvent by vwModel.cameraEvent.collectAsState()
+    val okToAdd by vwModel.okToAdd.collectAsState()
+    val okImage by vwModel.okImage.collectAsState()
+    val image by vwModel.imageTaken.collectAsState()
+    val uploadSuc by vwModel.uploadSuc.collectAsState()
+
+    val context = LocalContext.current
+
+    val imageForDisplay = @androidx.compose.runtime.Composable {
+        if (!okImage) {
+            painterResource(R.drawable.noimageborder)
+        } else {
+            rememberAsyncImagePainter(image)
+        }
+    }
+
+
+    LaunchedEffect(Unit) {
+        vwModel.getCurrentLocation(context)
+    }
+
+    LaunchedEffect(uploadSuc) {
+        if (uploadSuc) {
+            onNavigateToMain()
+        }
+    }
+
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicturePreview()
+    ) { bitmap ->
+        if (bitmap != null) {
+            val file = vwModel.bitmapToFile(context, bitmap)
+            if (file != null) {
+                vwModel.updateFile(file)
+            }
+        }
+    }
+
+    if (cameraEvent) {
+        launcher.launch(null)
+        vwModel.onCameraEventHandled()
+    }
+
     Surface(
         color = Amber,
         modifier = Modifier
@@ -231,7 +284,7 @@ fun AddPlace(
             }
 
             Image(
-                painter = painterResource(R.drawable.noimageborder),
+                painter = imageForDisplay(),
                 contentDescription = "avatar",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -245,7 +298,7 @@ fun AddPlace(
                     .shadow(
                         3.dp, RoundedCornerShape(12.dp)
                     ),
-                onClick = { /*TODO*/ },
+                onClick = { vwModel.onOpenCamera() },
                 containerColor = Color.White,
                 shape = RoundedCornerShape(20),
                 contentColor = Amber
@@ -295,14 +348,25 @@ fun AddPlace(
                 ) {
                     Icon(imageVector = Icons.Filled.Close, contentDescription = "Add place")
                 }
-                FloatingActionButton(
-                    containerColor = Color.White,
-                    contentColor = Amber,
-                    shape = CircleShape,
+                Button(
+                    enabled = okToAdd,
+                    contentPadding = PaddingValues(0.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.White,
+                        contentColor = Amber,
+                        disabledContainerColor = Color.Gray
+                    ),
                     modifier = Modifier
                         .padding(10.dp)
-                        .align(Alignment.Bottom),
-                    onClick = { onNavigateToMain() },
+                        .align(Alignment.Bottom)
+                        .clip(CircleShape)
+                        .size(56.dp),
+                    onClick = {
+                        vwModel.onAddPlace(context = context)
+                    },
+                    elevation = ButtonDefaults.buttonElevation(
+                        defaultElevation = 3.dp
+                    )
                 ) {
                     Icon(imageVector = Icons.Filled.Done, contentDescription = "Cancel")
                 }
