@@ -41,5 +41,15 @@ class UserRepository(private val userds: UserDS) {
         return userds.getAllUsers()
     }
 
+    suspend fun getUserByUID(uid: String): QuerySnapshot? {
+        return userds.getUserByUID(uid)
+    }
 
+    suspend fun getServiceAllowed(): Boolean? {
+        return userds.getServiceAllowed()
+    }
+
+    suspend fun changeServiceAllowed(bl: Boolean) {
+        userds.changeServiceAllowed(bl)
+    }
 }

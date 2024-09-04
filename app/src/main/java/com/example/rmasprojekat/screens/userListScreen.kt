@@ -112,7 +112,6 @@ fun UserListScreen(
                 users?.forEachIndexed { index, user ->
                     if (user.uid == currUID) {
                         Surface(
-
                             color = Amber,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -146,7 +145,7 @@ fun UserListScreen(
                                     fontSize = 20.sp
                                 )
                                 Text(
-                                    text = user.bod,
+                                    text = user.bod.toString(),
                                     color = Color.White,
                                     fontFamily = fontJockey,
                                     fontSize = 20.sp
@@ -155,7 +154,7 @@ fun UserListScreen(
                         }
                     } else {
                         Surface(
-                            border = BorderStroke(2.dp, color = Amber),
+                            border = BorderStroke(1.dp, color = Amber),
                             color = Color.White,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -189,7 +188,7 @@ fun UserListScreen(
                                     fontSize = 20.sp
                                 )
                                 Text(
-                                    text = user.bod,
+                                    text = user.bod.toString(),
                                     color = Amber,
                                     fontFamily = fontJockey,
                                     fontSize = 20.sp

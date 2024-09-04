@@ -288,29 +288,7 @@ fun Register(
                             contentDescription = "Fotografija",
                         )
                     }
-                    Button(
-                        shape = RoundedCornerShape(20),
-                        elevation = ButtonDefaults.buttonElevation(
-                            defaultElevation = 4.dp,
-                            pressedElevation = 10.dp,
-                            disabledElevation = 0.dp,
-                            hoveredElevation = 4.dp,
-                            focusedElevation = 4.dp,
-                        ),
-                        onClick = { vwModel.onOpenCamera() },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = buttonColor
-
-                        )
-                    ) {
-                        Icon(
-                            tint = iconTint,
-                            imageVector = FeatherIcons.Image,
-                            contentDescription = "Fotografija",
-                        )
-                    }
                 }
-
             }
         }
         item {

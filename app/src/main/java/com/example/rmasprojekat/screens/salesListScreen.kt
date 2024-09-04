@@ -63,10 +63,12 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.rmasprojekat.repositories.OglasRepository
+import com.example.rmasprojekat.repositories.UserRepository
 import com.example.rmasprojekat.ui.RegisterVM
 import com.example.rmasprojekat.ui.RegisterVMFactory
 import com.example.rmasprojekat.ui.SalesVM
 import com.example.rmasprojekat.ui.SalesVMFactory
+import com.example.rmasprojekat.ui.ViewSaleVM
 import com.example.rmasprojekat.ui.theme.Amber
 import com.example.rmasprojekat.ui.theme.AmberLight
 import com.example.rmasprojekat.ui.theme.fontJockey
@@ -81,10 +83,14 @@ import compose.icons.feathericons.X
 @Composable
 fun SalesListScreen(
     onNavigateToMain: () -> Unit, onNavigateToUsers: () -> Unit,
-    oglasRepository: OglasRepository
+    oglasRepository: OglasRepository,
+    userRepository: UserRepository,
+    onSaleClick: () -> Unit,
+    viewSaleVM: ViewSaleVM
 ) {
 
-    val vwModel: SalesVM = viewModel(factory = SalesVMFactory(oglasRep = oglasRepository))
+    val vwModel: SalesVM =
+        viewModel(factory = SalesVMFactory(oglasRep = oglasRepository, userRep = userRepository))
     val search by vwModel.searchSales.collectAsState()
     val openDialog by vwModel.openDialogMain.collectAsState()
     val showDate by vwModel.showDateMain.collectAsState()
@@ -512,7 +518,18 @@ fun SalesListScreen(
             ) {
                 sales?.forEachIndexed { index, oglas ->
                     Button(
-                        onClick = { /*TODO*/ },
+                        onClick = {
+                            viewSaleVM.updateOpisSale(oglas.opis)
+                            viewSaleVM.updateProdavnSale(oglas.prod)
+                            viewSaleVM.updateAutor(oglas.autor)
+                            viewSaleVM.updateSlikaURL(oglas.slikaURL)
+                            viewSaleVM.updateDatumISteka(oglas.datumIsteka)
+                            viewSaleVM.updateDocumentID(oglas.documentID)
+                            viewSaleVM.updateBodovi(oglas.bodovi)
+                            viewSaleVM.updateAutorIme(oglas.imeAutora)
+                            viewSaleVM.updateAutorPrezime(oglas.prezimeAutora)
+                            onSaleClick()
+                        },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Amber
                         ),

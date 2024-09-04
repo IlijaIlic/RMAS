@@ -32,7 +32,7 @@ class UsersVM(private val usRep: UserRepository?) : ViewModel() {
                 val uid = usr.getString("uid") ?: ""
 
 
-                UserClass(ime, prezime, uid, bodovi.toString())
+                UserClass(ime, prezime, uid, bodovi)
             } ?: emptyList()
 
             _users.value = usersList.sortedByDescending { it.bod }

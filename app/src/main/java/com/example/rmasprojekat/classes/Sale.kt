@@ -9,5 +9,8 @@ data class Sale(
     val lokacija: LatLng? = null,
     val slikaURL: String = "",
     val autor: String = "",
-    val bodovi: String = "",
+    val bodovi: Int = 0,
+    val documentID: String = "",
+    val imeAutora: String = "",
+    val prezimeAutora: String = ""
 )

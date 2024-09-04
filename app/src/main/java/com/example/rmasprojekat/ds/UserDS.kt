@@ -8,6 +8,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.Query
@@ -117,12 +118,54 @@ class UserDS(
 
     }
 
+    suspend fun getUserByUID(uid: String): QuerySnapshot? {
+        val usersRef = db.collection("users")
+        val query = usersRef.whereEqualTo("uid", uid)
+
+        return try {
+            query.get().await()
+        } catch (e: Exception) {
+            Log.w("Firestore", "Error getting documents: ", e)
+            null
+        }
+
+    }
+
     fun logout() {
         auth.signOut()
     }
 
     fun getUserTF(): FirebaseUser? {
         return auth.currentUser
+    }
+
+    suspend fun getServiceAllowed(): Boolean? {
+        val usersRef = db.collection("users")
+        val query = usersRef.whereEqualTo("uid", auth.currentUser?.uid.toString())
+
+        return try {
+            val snap = query.get().await()
+            val user = snap.documents.firstOrNull()
+            if (user != null) {
+                return user.getBoolean("servis")
+            } else {
+                return false
+            }
+        } catch (e: Exception) {
+            Log.w("Firestore", "Error getting documents: ", e)
+            false
+        }
+    }
+
+    suspend fun changeServiceAllowed(bl: Boolean) {
+        val usrsRef = db.collection("users")
+        val query = usrsRef.whereEqualTo("uid", auth.currentUser!!.uid)
+        val querySnap = query.get().await()
+        if (!querySnap.isEmpty) {
+            val doc = querySnap.documents[0]
+            doc.reference.update("servis", !bl)
+        }
+
     }
 
     suspend fun getAllUsers(): QuerySnapshot? {

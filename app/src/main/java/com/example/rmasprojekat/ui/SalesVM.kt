@@ -1,5 +1,6 @@
 package com.example.rmasprojekat.ui
 
+import android.util.Log
 import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.MutableState
@@ -21,7 +22,10 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 //GOTOVO
-class SalesVM(private val oglasRep: OglasRepository) : ViewModel() {
+class SalesVM(
+    private val oglasRep: OglasRepository,
+    private val userRep: UserRepository?
+) : ViewModel() {
 
     private val _searchSales = MutableStateFlow("")
     val searchSales: StateFlow<String> = _searchSales.asStateFlow()
@@ -94,7 +98,7 @@ class SalesVM(private val oglasRep: OglasRepository) : ViewModel() {
 
     fun getAllSales() {
         viewModelScope.launch {
-            val oglasi = oglasRep.getAllSales()
+            val oglasi = oglasRep?.getAllSales()
 
             val oglasiList = oglasi?.documents?.map { doc ->
                 val lat = doc.getField<Double>("lat") ?: 0.0
@@ -105,9 +109,19 @@ class SalesVM(private val oglasRep: OglasRepository) : ViewModel() {
                 val autor = doc.getString("autor") ?: ""
                 val bodovi = doc.getField<Int>("bodovi") ?: 0
                 val slikaUrl = doc.getString("slika") ?: ""
+                val docID = doc.id
+
+                val autorInfo = userRep?.getUserByUID(autor)
+                val user = autorInfo?.documents?.firstOrNull()
+                var autorIme = ""
+                var autorPrezime = ""
+                if (user != null) {
+                    autorIme = user.getString("ime").toString()
+                    autorPrezime = user.getString("prezime").toString() ?: ""
+                }
 
                 val lokConv = LatLng(lat, lng)
-
+                Log.w("BODOVI", bodovi.toString())
                 Sale(
                     opis = opis,
                     prod = prod,
@@ -115,7 +129,10 @@ class SalesVM(private val oglasRep: OglasRepository) : ViewModel() {
                     lokacija = lokConv,
                     slikaURL = slikaUrl,
                     autor = autor,
-                    bodovi = bodovi.toString()
+                    bodovi = bodovi,
+                    documentID = docID,
+                    imeAutora = autorIme,
+                    prezimeAutora = autorPrezime
                 )
             } ?: emptyList()
             _sales.value = oglasiList
@@ -123,10 +140,11 @@ class SalesVM(private val oglasRep: OglasRepository) : ViewModel() {
     }
 }
 
-class SalesVMFactory(private val oglasRep: OglasRepository) : ViewModelProvider.Factory {
+class SalesVMFactory(private val oglasRep: OglasRepository, private val userRep: UserRepository?) :
+    ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(SalesVM::class.java)) {
-            return SalesVM(oglasRep) as T
+            return SalesVM(oglasRep, userRep) as T
         }
         throw IllegalArgumentException("Unknown viewModel class")
     }

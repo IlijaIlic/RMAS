@@ -24,6 +24,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -47,6 +48,7 @@ import compose.icons.feathericons.Circle
 import compose.icons.feathericons.Eye
 import compose.icons.feathericons.EyeOff
 import compose.icons.feathericons.Heart
+import compose.icons.feathericons.XCircle
 
 @Composable
 fun ViewSaleScreen(
@@ -59,6 +61,14 @@ fun ViewSaleScreen(
     val liked by vwModel.likedSale.collectAsState()
     val autor by vwModel.autorSale.collectAsState()
     val imageURL by vwModel.slikaURL.collectAsState()
+    val bodovi by vwModel.bodovi.collectAsState()
+    val autorIme by vwModel.autorIme.collectAsState()
+    val autorPrezime by vwModel.autorPrezime.collectAsState()
+    val datumIsteka by vwModel.datumIsteka.collectAsState()
+
+    LaunchedEffect(Unit) {
+        vwModel.isLiked()
+    }
 
     Surface(
         modifier = Modifier
@@ -112,32 +122,45 @@ fun ViewSaleScreen(
                 )
 
                 IconButton(
-                    onClick = { vwModel.updateLikedSale(!liked) },
+                    onClick = {
+                        vwModel.onLikeClick()
+                        vwModel.updateLikedSale(!liked)
+                    },
                 ) {
                     Icon(
                         imageVector =
                         if (liked)
-                            FeatherIcons.Heart
-                        else FeatherIcons.Circle,
+                            FeatherIcons.XCircle
+                        else FeatherIcons.Heart,
                         contentDescription = "Like",
                         tint = Color.White
                     )
                 }
 
-                Row {
+                Row(horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(
-                        text = "autor: ",
+                        text = "bodovi: $bodovi",
                         fontFamily = fontJockey,
                         color = Color.White,
                         fontSize = 20.sp,
+                        modifier = Modifier.padding(horizontal = 10.dp)
                     )
                     Text(
-                        text = autor,
+                        text = "autor: $autorIme $autorPrezime",
                         fontFamily = fontJockey,
                         color = Color.White,
                         fontSize = 20.sp,
+                        modifier = Modifier.padding(horizontal = 10.dp)
                     )
+
                 }
+                Text(
+                    text = "datum isteka akcije: $datumIsteka",
+                    fontFamily = fontJockey,
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    modifier = Modifier.padding(horizontal = 10.dp)
+                )
 
             }
         }

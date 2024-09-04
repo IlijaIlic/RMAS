@@ -100,6 +100,7 @@ class AddPlaceVM(private val oglasRep: OglasRepository?) : ViewModel() {
 
     fun onAddPlace(context: Context) {
         Log.w("TEST", "U onAddPlace")
+        _okToAdd.value = false
         viewModelScope.launch {
             _uploadSuc.value =
                 oglasRep!!.createOglas(

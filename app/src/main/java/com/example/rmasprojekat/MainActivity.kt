@@ -1,6 +1,9 @@
 package com.example.rmasprojekat
 
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,7 +13,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -20,21 +27,32 @@ import com.example.rmasprojekat.ds.UserDS
 import com.example.rmasprojekat.repositories.OglasRepository
 import com.example.rmasprojekat.repositories.UserRepository
 import com.example.rmasprojekat.screens.AddPlace
+import com.example.rmasprojekat.screens.HistoryAddPlaceScreen
 import com.example.rmasprojekat.screens.Landing
 import com.example.rmasprojekat.screens.Login
 import com.example.rmasprojekat.screens.MainScreen
 import com.example.rmasprojekat.screens.Register
 import com.example.rmasprojekat.screens.ProfileScreen
 import com.example.rmasprojekat.screens.SalesListScreen
+import com.example.rmasprojekat.screens.SavedSalesScreen
 import com.example.rmasprojekat.screens.UserListScreen
 import com.example.rmasprojekat.screens.ViewSaleScreen
+import com.example.rmasprojekat.services.NearbyService
 import com.example.rmasprojekat.ui.ViewSaleVM
+import com.example.rmasprojekat.ui.ViewSaleVMFactory
 import com.example.rmasprojekat.ui.theme.RMASProjekatTheme
 import com.google.firebase.FirebaseApp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, "android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, arrayOf("android.permission.POST_NOTIFICATIONS"), 1)
+            }
+        }
+
         FirebaseApp.initializeApp(this)
         setContent {
             Navigation()
@@ -46,8 +64,11 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Navigation() {
-    val viewSaleVM: ViewSaleVM = viewModel()
+    val viewSaleVM: ViewSaleVM =
+        viewModel(factory = ViewSaleVMFactory(oglasRep = OglasRepository(oglasDS = OglasDS())))
     val navController = rememberNavController()
+
+    val painterUserLoc = painterResource(id = R.drawable.usrloc)
     NavHost(navController = navController, startDestination = "landing") {
         composable("landing") {
             Landing(onNavigateToLogin = { navController.navigate("login") },
@@ -85,7 +106,9 @@ fun Navigation() {
                 onNavigateToUserList = { navController.navigate("listOfUsers") },
                 onNavigateToViewSale = { navController.navigate("viewSale") },
                 oglasRepository = OglasRepository(oglasDS = OglasDS()),
-                viewSaleVM = viewSaleVM
+                viewSaleVM = viewSaleVM,
+                painterUsr = painterUserLoc,
+                userRep = UserRepository(userds = UserDS())
             )
         }
         composable("addPlace") {
@@ -100,7 +123,9 @@ fun Navigation() {
                     navController.popBackStack("main", false)
                 },
                 userRep = UserRepository(userds = UserDS()),
-                onNavigateWhenLogout = { navController.popBackStack("landing", false) }
+                onNavigateWhenLogout = { navController.popBackStack("landing", false) },
+                onNavigateToHistory = { navController.navigate("history") },
+                onNavigateToSaved = { navController.navigate("saved") }
             )
         }
         composable("listOfUsers") {
@@ -120,13 +145,36 @@ fun Navigation() {
                     navController.popBackStack("main", false)
                     navController.navigate("listOfUsers")
                 },
-                oglasRepository = OglasRepository(oglasDS = OglasDS())
+                oglasRepository = OglasRepository(oglasDS = OglasDS()),
+                onSaleClick = {
+                    navController.popBackStack("main", false)
+                    navController.navigate("viewSale")
+                },
+                viewSaleVM = viewSaleVM,
+                userRepository = UserRepository(userds = UserDS())
             )
         }
         composable("viewSale") {
             ViewSaleScreen(
                 onNavigateToMain = { navController.popBackStack("main", false) },
                 vwModel = viewSaleVM
+            )
+        }
+        composable("history") {
+            HistoryAddPlaceScreen(
+                onNavigateToProfile = { navController.popBackStack("profile", false) },
+                oglasRep = OglasRepository(oglasDS = OglasDS())
+            )
+        }
+        composable("saved") {
+            SavedSalesScreen(
+                onNavigateToProfile = { navController.popBackStack("profile", false) },
+                oglasRep = OglasRepository(oglasDS = OglasDS()),
+                onSaleClick = {
+                    navController.popBackStack("main", false)
+                    navController.navigate("viewSale")
+                },
+                viewSaleVM = viewSaleVM
             )
         }
     }

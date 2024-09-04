@@ -2,14 +2,17 @@ package com.example.rmasprojekat.ds
 
 import android.net.Uri
 import android.util.Log
+import com.example.rmasprojekat.classes.Sale
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.GeoPoint
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.firestore
+import com.google.firebase.firestore.getField
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import kotlinx.coroutines.tasks.await
@@ -52,6 +55,20 @@ class OglasDS(
                 "opis" to opis
             )
             db.collection("sales").document().set(data)
+
+            try {
+                val usersRef = db.collection("users")
+                val query = usersRef.whereEqualTo("uid", auth.currentUser?.uid.toString())
+                val querySnapshot = query.get().await()
+                if (!querySnapshot.isEmpty) {
+                    val document = querySnapshot.documents[0]
+                    val documentRef = document.reference
+                    documentRef.update("bodovi", FieldValue.increment(5)).await()
+                }
+            } catch (e: Exception) {
+                Log.w("ERROR", "Unable to find user $e")
+            }
+
             return true
         } catch (e: Exception) {
             Log.w("Firestore", "Error creating sale or uploading data", e)
@@ -102,4 +119,193 @@ class OglasDS(
         }
     }
 
+    suspend fun isLiked(docID: String): Boolean {
+        val savedSalesRef = db.collection("savedSales")
+        val query = savedSalesRef.whereEqualTo("saleID", docID)
+        val query2 = query.whereEqualTo("userID", auth.currentUser!!.uid)
+        val qsnapshot = query2.get().await()
+
+        return !qsnapshot.isEmpty
+    }
+
+    suspend fun addToLiked(docID: String, autorID: String): Boolean {
+        try {
+            val userID = auth.currentUser!!.uid.toString()
+
+            val data = hashMapOf(
+                "saleID" to docID,
+                "userID" to userID
+            )
+
+            db.collection("savedSales").add(data).await()
+
+            val usrsRef = db.collection("users")
+            val query = usrsRef.whereEqualTo("uid", autorID)
+            val querySnap = query.get().await()
+            if (!querySnap.isEmpty) {
+                val document = querySnap.documents[0]
+                val documentRef = document.reference
+                documentRef.update("bodovi", FieldValue.increment(1)).await()
+            }
+
+            val salesRef = db.collection("sales").document(docID)
+            salesRef.update("bodovi", FieldValue.increment(1)).await()
+
+            return true
+        } catch (e: Exception) {
+            return false
+        }
+    }
+
+    suspend fun removeFromLiked(docID: String, autorID: String): Boolean {
+        try {
+            val savedSalesRef = db.collection("savedSales")
+            val query = savedSalesRef
+                .whereEqualTo("saleID", docID)
+                .whereEqualTo("userID", auth.currentUser!!.uid)
+            val querySnapshot = query.get().await()
+            for (document in querySnapshot.documents) {
+                savedSalesRef.document(document.id).delete().await()
+            }
+
+            val usrsRef = db.collection("users")
+            val query2 = usrsRef.whereEqualTo("uid", autorID)
+            val querySnap = query2.get().await()
+            if (!querySnap.isEmpty) {
+                val document = querySnap.documents[0]
+                val documentRef = document.reference
+                documentRef.update("bodovi", FieldValue.increment(-1)).await()
+            }
+
+            val salesRef = db.collection("sales").document(docID)
+            salesRef.update("bodovi", FieldValue.increment(-1)).await()
+
+            return true
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error removing document", e)
+            return false
+        }
+    }
+
+    suspend fun deleteSale(docID: String): Boolean {
+        try {
+            val savedSalesRef = db.collection("savedSales")
+            val query = savedSalesRef.whereEqualTo("saleID", docID)
+            val querySnap = query.get().await()
+            if (!querySnap.isEmpty) {
+                querySnap.forEach { doc ->
+                    doc.reference.delete().await()
+                }
+            }
+        } catch (e: Exception) {
+            Log.w("DELETE", "Error deleting savedSales")
+            return false
+        }
+        try {
+            val salesRef = db.collection("sales").document(docID)
+            val snap = salesRef.get().await()
+            if (snap.exists()) {
+                snap.reference.delete().await()
+            }
+        } catch (e: Exception) {
+            Log.w("DELETE", "Error deleting sale")
+            return false
+        }
+        return true
+    }
+
+    suspend fun getHistorySales(): QuerySnapshot? {
+        try {
+            val salesRef = db.collection("sales")
+            val query = salesRef.whereEqualTo("autor", auth.currentUser!!.uid)
+            val querSnapshot = query.get().await()
+            if (!querSnapshot.isEmpty) {
+                return querSnapshot
+            }
+            return null
+        } catch (e: Exception) {
+            return null
+        }
+    }
+
+    suspend fun getSavedSales(): List<Sale>? {
+        try {
+            val savedSalesRef = db.collection("savedSales")
+            val query = savedSalesRef.whereEqualTo("userID", auth.currentUser!!.uid)
+            val querySnap = query.get().await()
+            if (!querySnap.isEmpty) {
+                val savedSalesList = querySnap.documents.mapNotNull { doc ->
+                    val saleID = doc.getString("saleID")
+                    saleID?.let { getSaleInfo(it) }
+                }
+                return savedSalesList
+            } else {
+                return emptyList()
+            }
+        } catch (e: Exception) {
+            return null
+        }
+    }
+
+    suspend fun getSaleInfo(saleId: String): Sale? {
+        try {
+            val saleRef = db.collection("sales").document(saleId)
+            val saleSnap = saleRef.get().await()
+
+            if (saleSnap.exists()) {
+                val lat = saleSnap.getField<Double>("lat") ?: 0.0
+                val lng = saleSnap.getField<Double>("lng") ?: 0.0
+                val datum = saleSnap.getString("datumIsteka") ?: ""
+                val opis = saleSnap.getString("opis") ?: ""
+                val prod = saleSnap.getString("prodavnica") ?: ""
+                val autor = saleSnap.getString("autor") ?: ""
+                val bodovi = saleSnap.getField<Int>("bodovi") ?: 0
+                val slikaUrl = saleSnap.getString("slika") ?: ""
+                val docID = saleSnap.id
+
+                val autorInfo = getUserByUID(autor)
+                val user = autorInfo?.documents?.firstOrNull()
+                var autorIme = ""
+                var autorPrezime = ""
+                if (user != null) {
+                    autorIme = user.getString("ime").toString()
+                    autorPrezime = user.getString("prezime").toString() ?: ""
+                }
+
+
+                val lokConv = LatLng(lat, lng)
+                Log.w("BODOVI", bodovi.toString())
+                return Sale(
+                    opis = opis,
+                    prod = prod,
+                    datumIsteka = datum,
+                    lokacija = lokConv,
+                    slikaURL = slikaUrl,
+                    autor = autor,
+                    bodovi = bodovi,
+                    documentID = docID,
+                    imeAutora = autorIme,
+                    prezimeAutora = autorPrezime
+                )
+            } else {
+                return null
+            }
+        } catch (e: Exception) {
+            Log.e("Firestore", "Error retrieving sale", e)
+            return null
+        }
+    }
+
+    suspend fun getUserByUID(uid: String): QuerySnapshot? {
+        val usersRef = db.collection("users")
+        val query = usersRef.whereEqualTo("uid", uid)
+
+        return try {
+            query.get().await()
+        } catch (e: Exception) {
+            Log.w("Firestore", "Error getting documents: ", e)
+            null
+        }
+
+    }
 }

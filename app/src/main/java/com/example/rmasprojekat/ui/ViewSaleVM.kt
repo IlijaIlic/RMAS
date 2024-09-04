@@ -1,11 +1,22 @@
 package com.example.rmasprojekat.ui
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import com.example.rmasprojekat.repositories.OglasRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
-class ViewSaleVM : ViewModel() {
+class ViewSaleVM(private val oglasRep: OglasRepository) : ViewModel() {
+
+
+    private val _documentID = MutableStateFlow("")
+    val documentID: StateFlow<String> = _documentID.asStateFlow()
+    fun updateDocumentID(nT: String) {
+        _documentID.value = nT
+    }
 
     private val _prodavnicaSale = MutableStateFlow("Idea")
     val prodavnicaSale: StateFlow<String> = _prodavnicaSale.asStateFlow()
@@ -49,9 +60,52 @@ class ViewSaleVM : ViewModel() {
         _autor.value = nT
     }
 
-    private val _bodovi = MutableStateFlow("")
-    val bodovi: StateFlow<String> = _bodovi.asStateFlow()
-    fun updateBodovi(nT: String) {
-        _bodovi.value = nT
+    private val _bodovi = MutableStateFlow(0)
+    val bodovi: StateFlow<Int> = _bodovi.asStateFlow()
+    fun updateBodovi(nB: Int) {
+        _bodovi.value = nB
+    }
+
+    private val _autorIme = MutableStateFlow("")
+    val autorIme: StateFlow<String> = _autorIme.asStateFlow()
+    fun updateAutorIme(nT: String) {
+        _autorIme.value = nT
+    }
+
+    private val _autorPrezime = MutableStateFlow("")
+    val autorPrezime: StateFlow<String> = _autorPrezime.asStateFlow()
+    fun updateAutorPrezime(nT: String) {
+        _autorPrezime.value = nT
+    }
+
+
+    fun isLiked() {
+        viewModelScope.launch {
+            _likedSale.value = oglasRep.isLiked(_documentID.value)
+        }
+    }
+
+    // likedSale = true => DISLIKE
+    // likedSale = false => LIKE
+
+    fun onLikeClick() {
+        viewModelScope.launch {
+            if (_likedSale.value) {
+                _bodovi.value--
+                oglasRep.removeFromLiked(_documentID.value, _autor.value)
+            } else {
+                _bodovi.value++
+                oglasRep.addToLiked(_documentID.value, _autor.value)
+            }
+        }
+    }
+}
+
+class ViewSaleVMFactory(private val oglasRep: OglasRepository) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(ViewSaleVM::class.java)) {
+            return ViewSaleVM(oglasRep) as T
+        }
+        throw IllegalArgumentException("Unknown viewModel class")
     }
 }

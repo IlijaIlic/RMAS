@@ -1,5 +1,6 @@
 package com.example.rmasprojekat.screens
 
+import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -42,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -51,6 +53,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.rmasprojekat.R
 import com.example.rmasprojekat.components.LoadImage
 import com.example.rmasprojekat.repositories.UserRepository
+import com.example.rmasprojekat.services.NearbyService
 import com.example.rmasprojekat.ui.LoginVM
 import com.example.rmasprojekat.ui.LoginVMFactory
 import com.example.rmasprojekat.ui.ProfileVM
@@ -59,13 +62,17 @@ import com.example.rmasprojekat.ui.theme.Amber
 import com.example.rmasprojekat.ui.theme.AmberLight
 import com.example.rmasprojekat.ui.theme.fontJockey
 import compose.icons.FeatherIcons
+import compose.icons.feathericons.Archive
 import compose.icons.feathericons.ArrowLeft
+import compose.icons.feathericons.Bookmark
 import compose.icons.feathericons.LogOut
 
 @Composable
 fun ProfileScreen(
     onNavigateToMain: () -> Unit,
     onNavigateWhenLogout: () -> Unit,
+    onNavigateToHistory: () -> Unit,
+    onNavigateToSaved: () -> Unit,
     userRep: UserRepository
 ) {
 //
@@ -77,6 +84,7 @@ fun ProfileScreen(
     val brojBodova by vwModel.brojBodovaProf.collectAsState()
     val checked by vwModel.serviceCheckedProf.collectAsState()
     val imageUrl by vwModel.imageURL.collectAsState()
+    val context = LocalContext.current
 
     vwModel.getUserInfo()
 
@@ -204,34 +212,7 @@ fun ProfileScreen(
                             fontSize = 20.sp
                         )
                     }
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = " ",
-                        )
-                        Button(
-                            onClick = {},
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Amber
-                            ), shape = RoundedCornerShape(20)
-                        ) {
-                            Text(
-                                text = "Promena podataka",
-                                fontFamily = fontJockey,
-                                fontSize = 20.sp,
-                                color = Color.White,
-                                modifier = Modifier.padding(horizontal = 5.dp)
-                            )
-                            Icon(
-                                imageVector = Icons.Filled.Create,
-                                contentDescription = "Change",
-                                modifier = Modifier.padding(horizontal = 5.dp)
-                            )
-                        }
-                    }
+
                 }
             }
             item {
@@ -273,30 +254,52 @@ fun ProfileScreen(
                         )
                     }
                     Button(
-                        onClick = {},
+                        onClick = { onNavigateToSaved() },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Amber
                         ), shape = RoundedCornerShape(20)
                     ) {
-                        Text(
-                            text = "Sacuvane akcije",
-                            fontFamily = fontJockey,
-                            fontSize = 20.sp,
-                            color = Color.White
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = FeatherIcons.Bookmark,
+                                contentDescription = "Saved",
+                                tint = Color.White,
+                                modifier = Modifier.padding(end = 10.dp)
+                            )
+                            Text(
+                                text = "Sacuvane akcije",
+                                fontFamily = fontJockey,
+                                fontSize = 20.sp,
+                                color = Color.White
+                            )
+
+                        }
                     }
                     Button(
-                        onClick = {},
+                        onClick = { onNavigateToHistory() },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Amber
                         ), shape = RoundedCornerShape(20)
                     ) {
-                        Text(
-                            text = "Istorija postavljenih akcija",
-                            fontFamily = fontJockey,
-                            fontSize = 20.sp,
-                            color = Color.White
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = FeatherIcons.Archive,
+                                contentDescription = "Saved",
+                                tint = Color.White,
+                                modifier = Modifier.padding(end = 10.dp)
+                            )
+                            Text(
+                                text = "Istorija postavljenih akcija",
+                                fontFamily = fontJockey,
+                                fontSize = 20.sp,
+                                color = Color.White
+                            )
+
+                        }
                     }
                 }
             }
@@ -318,7 +321,9 @@ fun ProfileScreen(
                         Switch(
                             checked = checked,
                             onCheckedChange = {
+                                vwModel.serviceFunction(context = context)
                                 vwModel.updateServiceCheckedProf(it)
+
                             },
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = Color.White,
