@@ -20,6 +20,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModel
 import com.example.rmasprojekat.MainActivity
 import com.example.rmasprojekat.classes.Sale
 import com.example.rmasprojekat.ds.OglasDS
@@ -35,13 +36,21 @@ import com.google.firebase.firestore.getField
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class NearbyService() : Service() {
 
     //CHANNEL ID za NOTIFCATION CHANNEL
     private val CHANNEL_ID = "ProximityServiceChannel"
 
-    //Foreground Service
+    //ZA PRACENJE LOKACIJE
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var locationCallback: LocationCallback
+
+
+    //Foreground Servis pa ne treba onBind
     override fun onBind(p0: Intent?): IBinder? {
         return null
     }
@@ -59,15 +68,20 @@ class NearbyService() : Service() {
     //PRI POKRETANJU APLIKACIJE PROVERITI DA LI JE U FIRESTORE-U TRUE AKOE JESTE UKLJUCITI SERVICE
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
-        Log.w("SERVICE", "SERVICE POKRENUT")
-        monitorLocation()
+        Toast.makeText(this, "Servis pokrenut", Toast.LENGTH_SHORT).show()
+        pratiLokaciju()
         return START_STICKY
     }
 
     override fun onDestroy() {
         super.onDestroy()
+
+        stopSelf()
+
+        if (::fusedLocationClient.isInitialized && ::locationCallback.isInitialized) {
+            fusedLocationClient.removeLocationUpdates(locationCallback)
+        }
         Toast.makeText(this, "Servis iskljucen", Toast.LENGTH_SHORT).show()
-        //fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
     //Kreiranje kanala za notifikacije
@@ -87,7 +101,6 @@ class NearbyService() : Service() {
     }
 
     private fun createNotif(): Notification {
-
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
@@ -98,47 +111,58 @@ class NearbyService() : Service() {
             .setContentTitle("NearbyService ukljucen")
             .setContentText("Pracenje lokacije")
             .setSmallIcon(R.drawable.sym_def_app_icon)
+            .setOngoing(true)
             .setContentIntent(pendingIntent)
             .build()
     }
 
-    private lateinit var fusedLocationClient: FusedLocationProviderClient
 
     @SuppressLint("MissingPermission")
-    private fun monitorLocation() {
+    private fun pratiLokaciju() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
+        //prati lokaciju svaki minut
         val locationRequest = LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY,
-            60000
+            20000
         ).build()
 
-        val locationCallback = object : LocationCallback() {
+        locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
                 val location: Location = locationResult.lastLocation!!
-                checkProximityToSales(location)
+                proveriBlizinu(location)
             }
         }
 
         fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null)
     }
 
-    private fun checkProximityToSales(userLocation: Location) {
+    private fun proveriBlizinu(userLocation: Location) {
         val oglasRepository = OglasRepository(oglasDS = OglasDS())
         CoroutineScope(Dispatchers.IO).launch {
             val sales = oglasRepository.getAllSales() // Get sales from repository
-            if (sales != null) {
-                for (sale in sales.documents) {
-                    val lat = sale.getField<Double>("lat") ?: 0.0
-                    val lng = sale.getField<Double>("lng") ?: 0.0
-                    val distance = calculateDistance(
-                        userLocation.latitude, userLocation.longitude,
-                        lat, lng
-                    )
 
-                    if (distance <= 1.0) { // 1 km radius
-                        pushNotification(sale)
-                    }
+            val todaysDateUNF = System.currentTimeMillis()
+            val todaysDate = Date(todaysDateUNF)
+            val dateFormat = SimpleDateFormat("dd. MMMM yyyy.", Locale("bs", "BS", "LAT"))
+
+            val filteredOglasi = sales?.documents?.filter { sale ->
+                val saleDate = dateFormat.parse(sale.getString("datumIsteka")!!)
+                saleDate?.after(todaysDate) ?: false
+            }
+
+
+            filteredOglasi?.forEach { sale ->
+
+                val lat = sale.getField<Double>("lat") ?: 0.0
+                val lng = sale.getField<Double>("lng") ?: 0.0
+                val distance = izracunajUdaljenost(
+                    userLocation.latitude, userLocation.longitude,
+                    lat, lng
+                )
+
+                if (distance <= 3) {
+                    pushNotification(sale)
                 }
             }
         }
@@ -147,7 +171,8 @@ class NearbyService() : Service() {
     @SuppressLint("MissingPermission")
     private fun pushNotification(sale: DocumentSnapshot) {
 
-        val id = (sale.getDouble("lat")!! + sale.getDouble("lng")!!).toInt()
+        val id = sale.id.hashCode()
+        val prod = sale.getString("prodavnica")
 
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -159,7 +184,7 @@ class NearbyService() : Service() {
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Akcija je blizu!")
-            .setContentText("Nalazite se blizu akcije!")
+            .setContentText("Nalazite se blizu akcije prodavnice ${prod}!")
             .setSmallIcon(R.drawable.sym_def_app_icon)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
@@ -168,7 +193,14 @@ class NearbyService() : Service() {
         NotificationManagerCompat.from(this).notify(id, notification)
     }
 
-    private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+    //Funkcija sa interneta !!
+    //Radi valjda !
+    private fun izracunajUdaljenost(
+        lat1: Double,
+        lon1: Double,
+        lat2: Double,
+        lon2: Double
+    ): Double {
         val earthRadius = 6371
         val dLat = Math.toRadians(lat2 - lat1)
         val dLon = Math.toRadians(lon2 - lon1)

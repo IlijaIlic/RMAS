@@ -31,11 +31,13 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.firebase.firestore.QuerySnapshot
 import com.google.firebase.firestore.getField
 import com.google.maps.android.compose.CameraPositionState
+import com.google.maps.android.compose.MarkerState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -43,6 +45,8 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.*
+
 
 //GOTOVO OSIM CAMERA POSITION
 class MainVM(
@@ -56,6 +60,13 @@ class MainVM(
     val slidePosMain: StateFlow<Float> = _sliderPosMain.asStateFlow()
     fun updateSlidePos(pos: Float) {
         _sliderPosMain.value = pos
+        Log.w("SLIDER", _sliderPosMain.value.toString())
+    }
+
+    private val _markerState = MutableStateFlow(MarkerState(position = LatLng(0.0, 0.0)))
+    val markerState: StateFlow<MarkerState> = _markerState.asStateFlow()
+    fun onUpdatePosition(position: LatLng) {
+        _markerState.value.position = position
     }
 
     private val _openDialogMain = MutableStateFlow(false)
@@ -118,6 +129,7 @@ class MainVM(
         }
     }
 
+
     private val _userLocation = MutableStateFlow<LatLng?>(null)
     val userLocation: StateFlow<LatLng?> = _userLocation.asStateFlow()
 
@@ -129,7 +141,7 @@ class MainVM(
 
         val locationRequest = LocationRequest.Builder(
             Priority.PRIORITY_HIGH_ACCURACY,
-            5000
+            1000
         ).build()
 
         if (locationCallback == null) {
@@ -138,6 +150,7 @@ class MainVM(
                     val location: Location? = locationResult.lastLocation
                     location?.let {
                         _userLocation.value = LatLng(it.latitude, it.longitude)
+                        filterSales()
                     }
                 }
             }
@@ -160,20 +173,6 @@ class MainVM(
 
     fun updateCameraPosition(cps: CameraPositionState) {
         _cameraPositionState.value = cps
-    }
-
-    //MOZDA DA SE IZBACI STARTFOREGROUNDSERVICE IZ KORUTINE???
-    //IZBACITI ODAVDE
-    fun getServiceAllowed(context: Context) {
-        val intent = Intent(context, NearbyService::class.java)
-        viewModelScope.launch {
-            if (userRep?.getServiceAllowed() == true) {
-                ContextCompat.startForegroundService(context, intent)
-            } else {
-                //za svaki slucaj stopirati ako postoji servis
-                context.stopService(intent)
-            }
-        }
     }
 
     private val _sales = MutableStateFlow<List<Sale>?>(null)
@@ -244,6 +243,7 @@ class MainVM(
         viewModelScope.launch {
             _selTextProdMain.value = ""
             _dateState.value.selectedDateMillis = System.currentTimeMillis()
+            _sliderPosMain.value = 0f
             getAllSales()
         }
     }
@@ -258,20 +258,51 @@ class MainVM(
             val selectedDate = Date(selectedDateMillis!!)
             val dateFormat = SimpleDateFormat("dd. MMMM yyyy.", Locale("bs", "BS", "LAT"))
 
+            val userLocation = _userLocation.value ?: return@launch
+            val userLat = userLocation.latitude
+            val userLng = userLocation.longitude
+
+            val maxDistance = 0.05 * _sliderPosMain.value
+
+            Log.w("DISTANCE", maxDistance.toString())
+
 
             val filteredSales = allSales.filter { sale ->
-
                 val saleDate = dateFormat.parse(sale.datumIsteka)
 
-                (_selTextProdMain.value.isEmpty() || sale.prod.contains(
+                val prodavnicaQuery = _selTextProdMain.value.isEmpty() || sale.prod.contains(
                     _selTextProdMain.value,
                     ignoreCase = true
-                )) &&
-                        saleDate?.after(selectedDate) ?: false
+                )
+                val dateQuery = saleDate?.after(selectedDate) ?: false
+
+
+                val saleLat = sale.lokacija?.latitude ?: return@filter false
+                val saleLng = sale.lokacija?.longitude ?: return@filter false
+                val distance = calculateDistance(userLat, userLng, saleLat, saleLng)
+                val daljinaQuery = if (_sliderPosMain.value == 0f) {
+                    true
+                } else {
+                    distance <= maxDistance
+                }
+
+                prodavnicaQuery && dateQuery && daljinaQuery
             }
 
             _sales.value = filteredSales
         }
+    }
+
+    private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+        val earthRadius = 6371 // Radius of the Earth in kilometers
+        val dLat = Math.toRadians(lat2 - lat1)
+        val dLon = Math.toRadians(lon2 - lon1)
+        val a =
+            sin(dLat / 2).pow(2) + cos(Math.toRadians(lat1)) * cos(Math.toRadians(lat2)) * sin(dLon / 2).pow(
+                2
+            )
+        val c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        return earthRadius * c
     }
 }
 

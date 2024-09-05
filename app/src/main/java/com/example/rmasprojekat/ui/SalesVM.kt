@@ -17,8 +17,10 @@ import com.google.firebase.firestore.getField
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 //GOTOVO
@@ -27,10 +29,13 @@ class SalesVM(
     private val userRep: UserRepository?
 ) : ViewModel() {
 
+
+
     private val _searchSales = MutableStateFlow("")
     val searchSales: StateFlow<String> = _searchSales.asStateFlow()
     fun updateSearchSales(nt: String) {
         _searchSales.value = nt
+        filterSales()
     }
 
     private val _openDialogMain = MutableStateFlow(false)
@@ -51,7 +56,7 @@ class SalesVM(
         _isExpandedMain.value = bl
     }
 
-    private val _selTextMain = MutableStateFlow("Izaberite Lokaciju")
+    private val _selTextMain = MutableStateFlow("")
     val selTextMain: StateFlow<String> = _selTextMain.asStateFlow()
     fun updateSelTextMain(nt: String) {
         _selTextMain.value = nt
@@ -63,7 +68,7 @@ class SalesVM(
         _isExpandedProdMain.value = bl
     }
 
-    private val _selTextProdMain = MutableStateFlow("Izaberite Prodavnicu")
+    private val _selTextProdMain = MutableStateFlow("")
     val selTextProdMain: StateFlow<String> = _selTextProdMain.asStateFlow()
     fun updateSelTextProdMain(nt: String) {
         _selTextProdMain.value = nt
@@ -96,6 +101,10 @@ class SalesVM(
     private val _sales = MutableStateFlow<List<Sale>?>(null)
     val sales: StateFlow<List<Sale>?> = _sales.asStateFlow()
 
+    private val _tempSales = MutableStateFlow<List<Sale>?>(null)
+    val tempSales: StateFlow<List<Sale>?> = _tempSales.asStateFlow()
+
+    @OptIn(ExperimentalMaterial3Api::class)
     fun getAllSales() {
         viewModelScope.launch {
             val oglasi = oglasRep?.getAllSales()
@@ -135,9 +144,71 @@ class SalesVM(
                     prezimeAutora = autorPrezime
                 )
             } ?: emptyList()
-            _sales.value = oglasiList
+
+            val todaysDateUNF = System.currentTimeMillis()
+            val todaysDate = Date(todaysDateUNF)
+            val dateFormat = SimpleDateFormat("dd. MMMM yyyy.", Locale("bs", "BS", "LAT"))
+
+            val filteredOglasi = oglasiList.filter { sale ->
+                val saleDate = dateFormat.parse(sale.datumIsteka)
+                saleDate?.after(todaysDate) ?: false
+            }
+
+            _sales.value = filteredOglasi
+            _tempSales.value = filteredOglasi
+
+            filterSales()
+//            searchFunction()
         }
     }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    fun resetFilters() {
+        viewModelScope.launch {
+            _selTextProdMain.value = ""
+            _dateState.value.selectedDateMillis = System.currentTimeMillis()
+            getAllSales()
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    fun filterSales() {
+        viewModelScope.launch {
+            _sales.value = _tempSales.value
+            val allSales = _sales.value ?: return@launch
+
+            val selectedDateMillis = dateState.value.selectedDateMillis
+            val selectedDate = Date(selectedDateMillis!!)
+            val dateFormat = SimpleDateFormat("dd. MMMM yyyy.", Locale("bs", "BS", "LAT"))
+            val query = _searchSales.value.lowercase()
+
+
+            val filteredSales = allSales.filter { sale ->
+
+                val saleDate = dateFormat.parse(sale.datumIsteka)
+
+                (_selTextProdMain.value.isEmpty() || sale.prod.contains(
+                    _selTextProdMain.value,
+                    ignoreCase = true
+                )) && (saleDate?.after(selectedDate)
+                    ?: false) && (query.isEmpty() || sale.opis.lowercase().contains(query))
+            }
+
+            _sales.value = filteredSales
+        }
+    }
+
+//    fun searchFunction() {
+//        val query = _searchSales.value.lowercase()
+//
+//        val allSales = _sales.value ?: return
+//
+//        val filteredSales = allSales.filter { sale ->
+//            query.isEmpty() || sale.opis.lowercase().contains(query)
+//        }
+//
+//        _sales.value = filteredSales
+//    }
 }
 
 class SalesVMFactory(private val oglasRep: OglasRepository, private val userRep: UserRepository?) :

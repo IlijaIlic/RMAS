@@ -1,6 +1,7 @@
 package com.example.rmasprojekat.screens
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -32,6 +33,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,11 +46,13 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.rmasprojekat.R
 import com.example.rmasprojekat.components.LoadImage
@@ -75,7 +79,7 @@ fun ProfileScreen(
     onNavigateToSaved: () -> Unit,
     userRep: UserRepository
 ) {
-//
+
     val vwModel: ProfileVM = viewModel(factory = ProfileVMFactory(userRep))
     val ime by vwModel.imeProf.collectAsState()
     val prezime by vwModel.prezimeProf.collectAsState()
@@ -86,10 +90,27 @@ fun ProfileScreen(
     val imageUrl by vwModel.imageURL.collectAsState()
     val context = LocalContext.current
 
-    vwModel.getUserInfo()
+
+    LaunchedEffect(Unit) {
+        vwModel.getUserInfo()
+
+        val isServiceRunning = vwModel.isServiceRunning(context, NearbyService::class.java)
+
+        //suspend funckije da bi checked moglo u if
+        val checkedFromSuspend = vwModel.getServiceAllowed() ?: false
+
+        // Ako je korisinika izabrao da ukljuci servis ranije i servis trenutno nije ukljucen
+        if (checkedFromSuspend && !isServiceRunning) {
+            Toast.makeText(context, "Servis je automatski pokrenut!", Toast.LENGTH_SHORT).show()
+            vwModel.startNearbyService(context)
+        } else {
+            Toast.makeText(context, "Servis vec radi ili je zabranjen!", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     //
-    //Screen za sacuvane akcije, istoriju postavljenih i promenu podataka
+    // Screen za sacuvane akcije, istoriju postavljenih
+    // ODRADjENO
     //
     Surface(
         modifier = Modifier.fillMaxSize(),

@@ -90,15 +90,18 @@ import com.example.rmasprojekat.ui.ViewSaleVM
 import com.example.rmasprojekat.ui.theme.Amber
 import com.example.rmasprojekat.ui.theme.AmberLight
 import com.example.rmasprojekat.ui.theme.fontJockey
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.CameraPositionState
+import com.google.maps.android.compose.Circle
 import com.google.maps.android.compose.GoogleMap
 import com.google.maps.android.compose.MapProperties
 import com.google.maps.android.compose.MapType
 import com.google.maps.android.compose.MapUiSettings
 import com.google.maps.android.compose.Marker
 import com.google.maps.android.compose.MarkerComposable
+import com.google.maps.android.compose.MarkerInfoWindow
 import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 import com.google.maps.android.compose.rememberMarkerState
@@ -134,11 +137,8 @@ fun MainScreen(
 
     val vwModel: MainVM = viewModel(factory = MainVMFactory(oglasRepository, userRep))
 
-    val sliderPosition by vwModel.slidePosMain.collectAsState()
     val openDialog by vwModel.openDialogMain.collectAsState()
     val showDate by vwModel.showDateMain.collectAsState()
-    val isExpanded by vwModel.isExpandedMain.collectAsState()
-    val selText by vwModel.selTextMain.collectAsState()
     val isExpandedProd by vwModel.isExpandedProdMain.collectAsState()
     val selTextProd by vwModel.selTextProdMain.collectAsState()
     val dateState = vwModel.dateState
@@ -146,6 +146,8 @@ fun MainScreen(
     val usrLocation by vwModel.userLocation.collectAsState()
     val cameraPositionState by vwModel.cameraPositionState.collectAsState()
     val sales by vwModel.sales.collectAsState()
+    val sliderPos by vwModel.slidePosMain.collectAsState()
+    val markerState by vwModel.markerState.collectAsState()
 
 
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -156,7 +158,6 @@ fun MainScreen(
             Lifecycle.State.DESTROYED -> {}
             Lifecycle.State.INITIALIZED -> {}
             Lifecycle.State.CREATED -> {
-                vwModel.getServiceAllowed(context)
                 vwModel.getAllSales()
             }
 
@@ -205,8 +206,7 @@ fun MainScreen(
             MapUiSettings(
                 zoomControlsEnabled = false,
                 compassEnabled = false,
-
-                )
+            )
         )
     }
 
@@ -221,24 +221,37 @@ fun MainScreen(
             properties = properties,
             uiSettings = uiSettings
         ) {
-            usrLocation?.let {
-
-                MarkerComposable(
-                    state = MarkerState(position = it),
+            usrLocation?.let { location ->
+                val userLatLng = LatLng(location.latitude, location.longitude)
+//                MarkerComposable(
+//                    state = MarkerState(position = location),
+//                    title = "Vasa lokacija",
+//                ) {
+//
+//                    Box(
+//                        modifier = Modifier.size(60.dp),
+//                        contentAlignment = Alignment.Center
+//                    ) {
+//                        Image(
+//                            painter = painterUsr,
+//                            contentDescription = "Korisnik",
+//                            modifier = Modifier.size(40.dp)
+//                        )
+//                    }
+//                }
+                vwModel.onUpdatePosition(location)
+                Marker(
+                    state = markerState,
                     title = "Vasa lokacija",
-                ) {
-                    Box(
-                        modifier = Modifier.size(60.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-
-                        Image(
-                            painter = painterUsr,
-                            contentDescription = "Korisnik",
-                            modifier = Modifier.size(40.dp)
-                        )
-                    }
-                }
+                    icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)
+                )
+                Circle(
+                    center = userLatLng,
+                    radius = (sliderPos * 50.0),
+                    strokeColor = Amber,
+                    fillColor = Color(0x2CFF0008),
+                    strokeWidth = 2f
+                )
             }
             sales?.forEach { sale ->
                 Marker(
@@ -495,7 +508,10 @@ fun MainScreen(
                                                     }
 
                                                 }
-                                                Text(text = "Trajanje akcije nakon")
+                                                Text(
+                                                    text = "Trajanje akcije nakon",
+                                                    fontFamily = fontJockey
+                                                )
                                                 FloatingActionButton(
                                                     onClick = { vwModel.updateShowDate(true) },
                                                     shape = RoundedCornerShape(12.dp),
@@ -515,14 +531,12 @@ fun MainScreen(
                                                         color = Color.Black
                                                     )
                                                 }
-
-
                                                 Text(
                                                     text = "Obim pretrage",
                                                     fontFamily = fontJockey
                                                 )
                                                 Slider(
-                                                    value = sliderPosition,
+                                                    value = sliderPos,
                                                     onValueChange = { vwModel.updateSlidePos(it) },
                                                     colors = SliderDefaults.colors(
                                                         thumbColor = Amber,
@@ -532,6 +546,7 @@ fun MainScreen(
                                                     steps = 3,
                                                     valueRange = 0f..50f
                                                 )
+
                                             }
                                             if (showDate) {
                                                 DatePickerDialog(

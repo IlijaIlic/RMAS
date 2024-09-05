@@ -37,6 +37,8 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -94,8 +96,6 @@ fun SalesListScreen(
     val search by vwModel.searchSales.collectAsState()
     val openDialog by vwModel.openDialogMain.collectAsState()
     val showDate by vwModel.showDateMain.collectAsState()
-    val isExpanded by vwModel.isExpandedMain.collectAsState()
-    val selText by vwModel.selTextMain.collectAsState()
     val isExpandedProd by vwModel.isExpandedProdMain.collectAsState()
     val selTextProd by vwModel.selTextProdMain.collectAsState()
     val dateState = vwModel.dateState
@@ -249,152 +249,82 @@ fun SalesListScreen(
                                                 .padding(10.dp)
                                         ) {
                                             ExposedDropdownMenuBox(
-                                                expanded = isExpanded,
-                                                onExpandedChange = {
-                                                    vwModel.updateIsExpanded(!isExpanded)
-                                                }) {
-                                                TextField(
-                                                    textStyle = TextStyle.Default.copy(
-                                                        fontFamily = fontJockey
-                                                    ),
-                                                    value = selText,
-                                                    onValueChange = {},
-                                                    modifier = Modifier
-                                                        .menuAnchor()
-                                                        .padding(10.dp)
-                                                        .widthIn(0.dp, 250.dp)
-                                                        .shadow(
-                                                            3.dp,
-                                                            RoundedCornerShape(12.dp)
-                                                        ),
-
-                                                    colors = TextFieldDefaults.colors(
-                                                        focusedContainerColor = Color.White,
-                                                        unfocusedContainerColor = Color.White,
-                                                        focusedIndicatorColor = Color.Transparent,
-                                                        unfocusedIndicatorColor = Color.Transparent,
-                                                    ),
-                                                    trailingIcon = {
-                                                        ExposedDropdownMenuDefaults.TrailingIcon(
-                                                            expanded = isExpanded
-                                                        )
-                                                    },
-                                                    readOnly = true
-                                                )
-                                                ExposedDropdownMenu(
-                                                    expanded = isExpanded,
-                                                    onDismissRequest = {
-                                                        vwModel.updateIsExpanded(
-                                                            false
-                                                        )
-                                                    }) {
-                                                    DropdownMenuItem(
-                                                        text = {
-                                                            Text(
-                                                                text = "Nis",
-                                                                fontFamily = fontJockey
-                                                            )
-                                                        },
-                                                        onClick = {
-                                                            vwModel.updateSelTextMain("Nis")
-                                                            vwModel.updateIsExpanded(!isExpanded)
-                                                        })
-                                                    DropdownMenuItem(
-                                                        text = {
-                                                            Text(
-                                                                text = "Beograd",
-                                                                fontFamily = fontJockey
-                                                            )
-                                                        },
-                                                        onClick = {
-                                                            vwModel.updateSelTextMain("Beograd")
-                                                            vwModel.updateIsExpanded(!isExpanded)
-                                                        })
-                                                    DropdownMenuItem(
-                                                        text = {
-                                                            Text(
-                                                                text = "Novi Sad",
-                                                                fontFamily = fontJockey
-                                                            )
-                                                        },
-                                                        onClick = {
-                                                            vwModel.updateSelTextMain("Novi Sad")
-                                                            vwModel.updateIsExpanded(!isExpanded)
-                                                        })
-                                                }
-
-                                            }
-                                            ExposedDropdownMenuBox(
                                                 expanded = isExpandedProd,
                                                 onExpandedChange = {
                                                     vwModel.updateIsExpandedProd(!isExpandedProd)
                                                 }) {
-                                                TextField(
-                                                    textStyle = TextStyle.Default.copy(
+                                                Column {
+                                                    Text(
+                                                        text = "Izaberite prodavnicu",
                                                         fontFamily = fontJockey
-                                                    ),
-                                                    value = selTextProd,
-                                                    onValueChange = {},
-                                                    modifier = Modifier
-                                                        .menuAnchor()
-                                                        .padding(10.dp)
-                                                        .widthIn(0.dp, 250.dp)
-                                                        .shadow(
-                                                            3.dp,
-                                                            RoundedCornerShape(12.dp)
+                                                    )
+                                                    TextField(
+                                                        textStyle = TextStyle.Default.copy(
+                                                            fontFamily = fontJockey
                                                         ),
+                                                        value = selTextProd,
+                                                        onValueChange = {},
+                                                        modifier = Modifier
+                                                            .menuAnchor()
+                                                            .padding(10.dp)
+                                                            .widthIn(0.dp, 250.dp)
+                                                            .shadow(
+                                                                3.dp,
+                                                                RoundedCornerShape(12.dp)
+                                                            ),
 
-                                                    colors = TextFieldDefaults.colors(
-                                                        focusedContainerColor = Color.White,
-                                                        unfocusedContainerColor = Color.White,
-                                                        focusedIndicatorColor = Color.Transparent,
-                                                        unfocusedIndicatorColor = Color.Transparent,
-                                                    ),
-                                                    trailingIcon = {
-                                                        ExposedDropdownMenuDefaults.TrailingIcon(
-                                                            expanded = isExpandedProd
-                                                        )
-                                                    },
-                                                    readOnly = true
-                                                )
-                                                ExposedDropdownMenu(
-                                                    expanded = isExpandedProd,
-                                                    onDismissRequest = {
-                                                        vwModel.updateIsExpandedProd(false)
-                                                    }) {
-                                                    DropdownMenuItem(
-                                                        text = {
-                                                            Text(
-                                                                text = "Roda",
-                                                                fontFamily = fontJockey
+                                                        colors = TextFieldDefaults.colors(
+                                                            focusedContainerColor = Color.White,
+                                                            unfocusedContainerColor = Color.White,
+                                                            focusedIndicatorColor = Color.Transparent,
+                                                            unfocusedIndicatorColor = Color.Transparent,
+                                                        ),
+                                                        trailingIcon = {
+                                                            ExposedDropdownMenuDefaults.TrailingIcon(
+                                                                expanded = isExpandedProd
                                                             )
                                                         },
-                                                        onClick = {
-                                                            vwModel.updateSelTextProdMain("Roda")
+                                                        readOnly = true
+                                                    )
+                                                    ExposedDropdownMenu(
+                                                        expanded = isExpandedProd,
+                                                        onDismissRequest = {
                                                             vwModel.updateIsExpandedProd(false)
-                                                        })
-                                                    DropdownMenuItem(
-                                                        text = {
-                                                            Text(
-                                                                text = "Idea",
-                                                                fontFamily = fontJockey
-                                                            )
-                                                        },
-                                                        onClick = {
-                                                            vwModel.updateSelTextProdMain("Idea")
-                                                            vwModel.updateIsExpandedProd(false)
-                                                        })
-                                                    DropdownMenuItem(
-                                                        text = {
-                                                            Text(
-                                                                text = "Lidl",
-                                                                fontFamily = fontJockey
-                                                            )
-                                                        },
-                                                        onClick = {
-                                                            vwModel.updateSelTextProdMain("Lidl")
-                                                            vwModel.updateIsExpandedProd(false)
-                                                        })
+                                                        }) {
+                                                        DropdownMenuItem(
+                                                            text = {
+                                                                Text(
+                                                                    text = "Roda",
+                                                                    fontFamily = fontJockey
+                                                                )
+                                                            },
+                                                            onClick = {
+                                                                vwModel.updateSelTextProdMain("Roda")
+                                                                vwModel.updateIsExpandedProd(false)
+                                                            })
+                                                        DropdownMenuItem(
+                                                            text = {
+                                                                Text(
+                                                                    text = "Idea",
+                                                                    fontFamily = fontJockey
+                                                                )
+                                                            },
+                                                            onClick = {
+                                                                vwModel.updateSelTextProdMain("Idea")
+                                                                vwModel.updateIsExpandedProd(false)
+                                                            })
+                                                        DropdownMenuItem(
+                                                            text = {
+                                                                Text(
+                                                                    text = "Lidl",
+                                                                    fontFamily = fontJockey
+                                                                )
+                                                            },
+                                                            onClick = {
+                                                                vwModel.updateSelTextProdMain("Lidl")
+                                                                vwModel.updateIsExpandedProd(false)
+                                                            })
+                                                    }
                                                 }
 
                                             }
@@ -417,6 +347,9 @@ fun SalesListScreen(
                                                     color = Color.Black
                                                 )
                                             }
+
+
+
                                         }
                                         if (showDate) {
                                             DatePickerDialog(
@@ -480,7 +413,10 @@ fun SalesListScreen(
                                         horizontalArrangement = Arrangement.SpaceBetween,
                                     ) {
                                         Button(
-                                            onClick = { vwModel.updateOpenDialog(false) },
+                                            onClick = {
+                                                vwModel.resetFilters()
+                                                vwModel.updateOpenDialog(false)
+                                            },
                                             colors = ButtonDefaults.buttonColors(
                                                 containerColor = Amber
                                             ),
@@ -492,7 +428,10 @@ fun SalesListScreen(
                                             )
                                         }
                                         Button(
-                                            onClick = { vwModel.updateOpenDialog(false) },
+                                            onClick = {
+                                                vwModel.filterSales()
+                                                vwModel.updateOpenDialog(false)
+                                            },
                                             colors = ButtonDefaults.buttonColors(
                                                 containerColor = Amber
                                             ),

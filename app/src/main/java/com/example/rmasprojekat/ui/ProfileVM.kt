@@ -67,7 +67,7 @@ class ProfileVM(private val userRep: UserRepository?) : ViewModel() {
         _imageURL.value = nT
     }
 
-    fun getUserInfo() {
+    suspend fun getUserInfo() {
         viewModelScope.launch {
             val userSnap: QuerySnapshot? = userRep?.getUser()
             val user = userSnap?.documents?.firstOrNull()
@@ -87,6 +87,9 @@ class ProfileVM(private val userRep: UserRepository?) : ViewModel() {
         return userRep?.getUserTF()
     }
 
+    suspend fun getServiceAllowed(): Boolean? {
+        return userRep?.getServiceAllowed()
+    }
 
     fun serviceFunction(context: Context) {
         viewModelScope.launch {
@@ -101,6 +104,23 @@ class ProfileVM(private val userRep: UserRepository?) : ViewModel() {
             //poslati true u FIRESTORE
             ContextCompat.startForegroundService(context, intent)
         }
+    }
+
+
+    fun startNearbyService(context: Context) {
+        val intent = Intent(context, NearbyService::class.java)
+        ContextCompat.startForegroundService(context, intent)
+    }
+
+
+    fun isServiceRunning(context: Context, serviceClass: Class<*>): Boolean {
+        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        for (service in activityManager.getRunningServices(Int.MAX_VALUE)) {
+            if (serviceClass.name == service.service.className) {
+                return true
+            }
+        }
+        return false
     }
 }
 
