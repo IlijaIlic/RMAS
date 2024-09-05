@@ -161,7 +161,7 @@ class NearbyService() : Service() {
                     lat, lng
                 )
 
-                if (distance <= 3) {
+                if (distance <= 0.5) {
                     pushNotification(sale)
                 }
             }

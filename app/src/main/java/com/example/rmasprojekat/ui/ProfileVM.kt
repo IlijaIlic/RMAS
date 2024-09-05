@@ -14,6 +14,7 @@ import com.example.rmasprojekat.repositories.UserRepository
 import com.example.rmasprojekat.services.NearbyService
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.getField
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -78,6 +79,7 @@ class ProfileVM(private val userRep: UserRepository?) : ViewModel() {
                 _brojTelefonaProf.value = user.getString("brTel").toString()
                 _imageURL.value = user.get("slika").toString()
                 _serviceCheckedProf.value = user.getBoolean("servis")!!
+                _brojBodovaProf.value = user.getField<Int>("bodovi") ?: 0
             }
         }
 
