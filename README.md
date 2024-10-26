@@ -9,7 +9,7 @@ App uses:
 
 The app also has a foreground service that can be turned on or off and lets users know when they are near sale.
 
-## ScreenShots
+## Screenshots
 
 <a href="https://github.com/IlijaIlic/RMAS/blob/main/Scrs/Scr1.jpg?raw=true"><img src="https://github.com/IlijaIlic/RMAS/blob/main/Scrs/Scr2.jpg?raw=true" width="150"/></a>
 <a href="https://github.com/IlijaIlic/RMAS/blob/main/Scrs/Scr1.jpg?raw=true"><img src="https://github.com/IlijaIlic/RMAS/blob/main/Scrs/Scr1.jpg?raw=true" width="150"/></a>
