@@ -5,3 +5,5 @@ App uses:
   * FireBase Authentication 
   * FireStore
   * FireBase Storage (for image upload)
+
+Code still in dev branch!
